@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0B1626">
+  <meta name="description" content="KOAPLIT — gastos en pareja y grupos, retos de ahorro, metas compartidas y sincronización entre móviles.">
+  <title>KOAPLIT</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="fonts.css?v=200">
+  <link rel="stylesheet" href="styles.css?v=200">
+</head>
+<body>
+  <div id="aurora" aria-hidden="true"></div>
+  <div id="grano" aria-hidden="true"></div>
+
+  <!-- ========== ONBOARDING (con emparejamiento de sala) ========== -->
+  <div id="onboarding">
+    <div class="onb-nieve" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <div class="onb-contenido">
+      <div class="onb-logo">
+        <span class="onb-koala">🐨</span>
+        <h1>KOA<em>PLIT</em></h1>
+        <p class="onb-lema">Gastos a medias, sueños enteros.</p>
+      </div>
+
+      <form id="form-pareja" autocomplete="off">
+        <div class="onb-campos">
+          <div class="campo-persona menta">
+            <label for="nombre-a">Tú</label>
+            <input id="nombre-a" type="text" maxlength="20" placeholder="Tu nombre" required>
+            <div class="emojis" data-para="emoji-a">
+              <button type="button" class="activo">🦊</button><button type="button">🐻</button><button type="button">🐨</button><button type="button">🐧</button><button type="button">🦉</button><button type="button">🐺</button>
+            </div>
+          </div>
+          <div class="onb-mas" aria-hidden="true">+</div>
+          <div class="campo-persona coral">
+            <label for="nombre-b">Tu pareja</label>
+            <input id="nombre-b" type="text" maxlength="20" placeholder="Su nombre" required>
+            <div class="emojis" data-para="emoji-b">
+              <button type="button" class="activo">🐰</button><button type="button">🦝</button><button type="button">🐹</button><button type="button">🦌</button><button type="button">🐱</button><button type="button">🐭</button>
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="btn-principal onb-btn" id="btnGuardarNombres">Guardar nombres ❄️</button>
+
+        <!-- Emparejamiento por código de sala (sincronización entre móviles) -->
+        <div class="onb-sala">
+          <label for="roomCodeInput">🔑 Código de sala</label>
+          <input id="roomCodeInput" type="text" maxlength="6" placeholder="6 caracteres" autocomplete="off">
+          <div class="onb-sala-botones">
+            <button type="button" id="btnCreateRoom" class="btn-suave">➕ Crear sala</button>
+            <button type="button" id="btnJoinRoom" class="btn-secundario">🔗 Unirse</button>
+          </div>
+          <p id="pairingMsg"></p>
+          <p class="onb-sala-nota">
+            La sincronización viaja cifrada de extremo a extremo: solo quien tenga el código puede leerla.
+            También funciona sin sala, guardando todo solo en este móvil.
+          </p>
+        </div>
+      </form>
+    </div>
+    <svg class="onb-montes" viewBox="0 0 480 120" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 120 L70 40 L120 90 L190 15 L260 95 L330 35 L400 100 L480 50 L480 120 Z" fill="rgba(127,196,255,.10)"/>
+      <path d="M0 120 L90 70 L160 110 L240 45 L320 110 L410 65 L480 120 Z" fill="rgba(111,245,200,.13)"/>
+    </svg>
+  </div>
+
+  <!-- ========== APP PRINCIPAL ========== -->
+  <div id="app" hidden>
+    <div id="syncStatus" hidden>⚪</div>
+
+    <header id="cabecera">
+      <div class="marca">
+        <span class="marca-koala">🐨</span>
+        <span class="marca-nombre">KOA<em>PLIT</em></span>
+      </div>
+      <button class="btn-icono" data-action="abrir-ajustes" aria-label="Ajustes">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+      </button>
+    </header>
+
+    <main id="principal">
+      <section id="vista-inicio" class="vista"></section>
+      <section id="vista-gastos" class="vista" hidden></section>
+      <section id="vista-metas" class="vista" hidden></section>
+      <section id="vista-retos" class="vista" hidden></section>
+    </main>
+
+    <button id="fab" data-action="fab" aria-label="Añadir">
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+
+    <nav id="navegacion">
+      <button data-action="ir" data-vista="inicio" class="activo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></svg>
+        <span>Inicio</span>
+      </button>
+      <button data-action="ir" data-vista="gastos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2Z"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>
+        <span>Gastos</span>
+      </button>
+      <button data-action="ir" data-vista="metas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>
+        <span>Metas</span>
+      </button>
+      <button data-action="ir" data-vista="retos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 4-4 5.5-4 9.5a4 4 0 0 0 8 0c0-1.5-.6-2.6-1.3-3.7C13.6 9.5 15.5 8 15 5c2.5 1.8 5 5.2 5 9a8 8 0 1 1-16 0c0-5 4.5-8.5 8-12Z"/></svg>
+        <span>Retos</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Hoja modal -->
+  <div id="velo" hidden>
+    <div id="sheet" role="dialog" aria-modal="true"></div>
+  </div>
+
+  <div id="toasts" aria-live="polite"></div>
+  <canvas id="confetti" hidden></canvas>
+  <input type="file" id="importador" hidden>
+
+  <!-- ====== FIREBASE OPCIONAL ======
+       Si creas firebase-config.js (export const firebaseConfig = {...}) con tu
+       proyecto, la sincronización usará TU Firestore. Sin ese archivo, KOAPLIT
+       sincroniza mediante salas cifradas de extremo a extremo (sin cuentas). -->
+  <script type="module">
+    (async () => {
+      try {
+        const mod = await import('./firebase-config.js');
+        if (!mod || !mod.firebaseConfig) return;
+        const carga = src => new Promise((ok, ko) => {
+          const s = document.createElement('script');
+          s.src = src; s.onload = ok; s.onerror = ko;
+          document.head.appendChild(s);
+        });
+        await carga('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
+        await carga('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js');
+        firebase.initializeApp(mod.firebaseConfig);
+        const db = firebase.firestore();
+        try { await db.enablePersistence({ synchronizeTabs: true }); } catch (_) {}
+        window.__firebase = { db };
+        if (window.SYNC) window.SYNC.iniciar(); // reconecta usando Firestore
+      } catch (_) { /* sin firebase-config.js → salas cifradas por defecto */ }
+    })();
+  </script>
+
+  <!-- ====== APP (el orden importa) ====== -->
+  <script src="i18n.js?v=200"></script>
+  <script src="nucleo.js?v=200"></script>
+  <script src="graficos.js?v=200"></script>
+  <script src="vendor/mqtt.min.js"></script>
+  <script src="sync.js?v=200"></script>
+  <script src="ocr.js?v=200"></script>
+  <script src="ui.js?v=200"></script>
+</body>
+</html>
