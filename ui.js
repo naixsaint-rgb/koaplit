@@ -207,6 +207,34 @@ function mensajeKoala() {
   return t('koalaHola', esc(nombre('a')), esc(nombre('b')));
 }
 
+/* ---------- avisos: prompt de permiso + banner de novedades ---------- */
+function htmlPromptAvisos() {
+  const soportado = 'Notification' in window;
+  if (!soportado || Notification.permission !== 'default' || !disp.huboEventoDeFondo || disp.avisosOfrecidos) return '';
+  return `<div class="carta prompt-avisos">
+    <span class="prompt-avisos-emoji">🔔</span>
+    <div class="prompt-avisos-texto">¿Avisos aunque no estés mirando la app?</div>
+    <button class="btn-suave" data-action="ignorar-prompt-avisos">Ahora no</button>
+    <button class="btn-principal prompt-avisos-btn" data-action="activar-avisos">Activar</button>
+  </div>`;
+}
+
+function htmlBannerNovedades() {
+  const lista = disp.novedadesPendientes || [];
+  if (!lista.length) return '';
+  const abierto = !!tmp.novedadesAbiertas;
+  return `<div class="banner-novedades">
+    <button type="button" class="banner-novedades-cab" data-action="alternar-novedades">
+      <span>🔔 ${lista.length === 1 ? '1 novedad' : lista.length + ' novedades'} mientras no estabas</span>
+      <span class="banner-flecha">${abierto ? '▴' : '▾'}</span>
+    </button>
+    ${abierto ? `<div class="banner-novedades-lista">
+      ${[...lista].reverse().map(e => `<div class="banner-novedad-item">${e.texto}</div>`).join('')}
+      <button type="button" class="btn-suave btn-bloque" data-action="descartar-novedades">Descartar</button>
+    </div>` : ''}
+  </div>`;
+}
+
 function vInicio() {
   const neto = balanceParejaNetoA();
   const racha = rachaDias();
@@ -225,7 +253,8 @@ function vInicio() {
       <div class="balance-quien">${emojiDe(deudor)} ${t('leDebe', '<b>' + esc(nombre(deudor)) + '</b>', '<b>' + esc(nombre(acreedor)) + '</b>')} ${emojiDe(acreedor)}</div>`;
   }
 
-  let h = `<div class="saludo-koala"><span class="koala">🐨</span><div class="burbuja">${mensajeKoala()}</div></div>
+  let h = htmlPromptAvisos() + htmlBannerNovedades();
+  h += `<div class="saludo-koala"><span class="koala">🐨</span><div class="burbuja">${mensajeKoala()}</div></div>
     <div class="carta carta-balance">
       <div class="nieve-mini" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
       ${centro}
@@ -307,6 +336,20 @@ function ultimaActividad(n) {
   return ev.sort((x, y) => String(y.orden || '').localeCompare(String(x.orden || ''))).slice(0, n);
 }
 
+/* ---------- portada de mes ---------- */
+function htmlPortadaMes(grupoId, ym) {
+  const p = portadaMes(grupoId, ym);
+  if (p) {
+    return `<div class="portada-mes" style="background-image:url('${p.dataUrl}')">
+      <div class="portada-mes-velo"></div>
+      <button type="button" class="portada-mes-quitar" data-action="quitar-portada-mes" data-grupo="${grupoId}" data-ym="${ym}" aria-label="Quitar foto">✕</button>
+    </div>`;
+  }
+  return `<button type="button" class="portada-mes-vacia" data-action="subir-portada-mes" data-grupo="${grupoId}" data-ym="${ym}">
+    🖼️ Poner una foto de este mes
+  </button>`;
+}
+
 /* ============================================================
    VISTA: GASTOS (grupos, búsqueda, totales)
    ============================================================ */
@@ -378,7 +421,7 @@ function vGastos() {
     const total = gs.reduce((s, x) => s + x.importe, 0);
     const porPersona = {};
     for (const x of gs) porPersona[x.pagadoPor] = (porPersona[x.pagadoPor] || 0) + x.importe;
-    h += `<div class="mes-grupo"><div class="mes-cabecera"><span>${mesBonito(ym)}</span></div>`;
+    h += `<div class="mes-grupo">${htmlPortadaMes(g.id, ym)}<div class="mes-cabecera"><span>${mesBonito(ym)}</span></div>`;
     h += gs.map(x => `
       <div class="item-linea" role="button" tabindex="0" data-action="abrir-gasto" data-id="${x.id}">
         <span class="item-icono">${x.categoria}</span>
@@ -854,6 +897,16 @@ function sheetTotales() {
       <div class="stat menta"><div class="stat-etq">${t('esteMes')}</div><div class="stat-num">${fmtMon(tot.mesActual, gr.moneda)}</div></div>
       <div class="stat"><div class="stat-etq">${t('mesAnterior')}</div><div class="stat-num">${fmtMon(tot.mesPrevio, gr.moneda)}</div></div>
     </div>
+    <div class="carta" style="text-align:center;padding:18px;margin-bottom:14px">
+      <div class="stat-etq">📅 Total de ${tot.anoActual}</div>
+      <div class="stat-num tinta-menta" style="font-size:26px;margin-top:4px">${fmtMon(tot.totalAnual, gr.moneda)}</div>
+      <div style="font-size:12px;color:var(--bruma);margin-top:4px">Se mantiene aunque saldéis las cuentas — nada se borra nunca.</div>
+    </div>
+    ${Object.keys(tot.porAno).filter(a => a !== tot.anoActual).length ? `
+    <div class="detalle-filas" style="margin-bottom:14px">
+      ${Object.entries(tot.porAno).filter(([a]) => a !== tot.anoActual).sort((a, b) => b[0].localeCompare(a[0])).map(([a, v]) => `
+        <div class="detalle-fila"><span>📅 ${a}</span><b class="num">${fmtMon(v, gr.moneda)}</b></div>`).join('')}
+    </div>` : ''}
     <div class="subtitulo" style="margin-top:0">${t('evolucion')}</div>
     <div class="carta" style="padding:14px">${graficoBarrasMeses(tot.porMes, gr.moneda)}</div>
     <div class="subtitulo">${t('porCategoria')}</div>
@@ -1271,6 +1324,11 @@ function completarReto(id) {
 /* ---------- hoja: ajustes ---------- */
 function sheetAjustes() {
   const salaTxt = disp.sala ? t('salaActiva', disp.sala) : t('sinSala');
+  const permiso = ('Notification' in window) ? Notification.permission : 'no-soportado';
+  const etiquetaAvisos = permiso === 'granted' ? 'Activados ✓'
+    : permiso === 'denied' ? 'Bloqueados — actívalos desde los ajustes del navegador'
+    : permiso === 'no-soportado' ? 'No disponible en este navegador'
+    : 'Desactivados';
   abrirSheet(`
     <h3 class="sheet-titulo">${t('ajustes')}
       <button class="btn-icono" data-action="cerrar-sheet" aria-label="✕">✕</button>
@@ -1278,6 +1336,10 @@ function sheetAjustes() {
     <div class="ajuste-fila">
       <div class="aj-texto"><b>${emojiDe('a')} ${esc(nombre('a'))} + ${emojiDe('b')} ${esc(nombre('b'))}</b><span>${t('vosotrosDos')}</span></div>
       <button class="btn-suave" data-action="editar-pareja">✏️</button>
+    </div>
+    <div class="ajuste-fila">
+      <div class="aj-texto"><b>🔔 Avisos de la pareja</b><span>${etiquetaAvisos}</span></div>
+      ${permiso === 'default' ? `<button class="btn-suave" data-action="activar-avisos">Activar</button>` : ''}
     </div>
     <div class="ajuste-fila">
       <div class="aj-texto"><b>${t('idioma')} 🌍</b></div>
@@ -1414,6 +1476,20 @@ async function procesarTicket(archivo) {
     toast(t('ticketError'));
   } finally {
     if (btn.isConnected) { btn.disabled = false; btn.textContent = t('escanearTicket'); }
+  }
+}
+
+async function procesarPortadaMes(archivo) {
+  const grupoId = tmp.portadaGrupoId, ym = tmp.portadaYm;
+  if (!grupoId || !ym) return;
+  toast('Preparando la foto… 🖼️');
+  try {
+    const dataUrl = await comprimirImagen(archivo);
+    guardarPortadaMes(grupoId, ym, dataUrl, disp.yo);
+    guardar(); render();
+    toast('¡Foto puesta! 🖼️');
+  } catch (_) {
+    toast('No pude procesar esa foto 🙈');
   }
 }
 
@@ -1557,6 +1633,21 @@ const acciones = {
   'elegir-csv-pagador': b => { tmp.pagadoPor = b.dataset.valor; marcarActivo(b); },
   'importar-csv-confirmar': () => importarCSVConfirmar(),
 
+  // portada de mes
+  'subir-portada-mes': b => {
+    tmp.portadaGrupoId = b.dataset.grupo;
+    tmp.portadaYm = b.dataset.ym;
+    const f = $('#foto-portada-mes');
+    if (f) f.click();
+  },
+  'quitar-portada-mes': b => {
+    const grupoId = b.dataset.grupo, ym = b.dataset.ym;
+    sheetConfirmar('🗑️ Quitar foto', '¿Seguro? Se quitará para los dos.', 'Sí, quitar', () => {
+      quitarPortadaMes(grupoId, ym);
+      guardar(); render(); toast('Foto quitada 🗑️');
+    });
+  },
+
   // metas
   'nueva-meta': () => sheetMeta(null),
   'abrir-meta': b => { const o = estado.objetivos.find(x => x.id === b.dataset.id); if (o) sheetDetalleMeta(o); },
@@ -1641,7 +1732,28 @@ const acciones = {
     cerrarSheet();
     toast(t('salaUnida', codigo));
   },
-  'confirmar-si': () => { const cb = confirmCb; confirmCb = null; cerrarSheet(); if (cb) cb(); }
+  'confirmar-si': () => { const cb = confirmCb; confirmCb = null; cerrarSheet(); if (cb) cb(); },
+
+  // avisos
+  'activar-avisos': async () => {
+    disp.avisosOfrecidos = true;
+    guardarDisp();
+    if ('Notification' in window) {
+      try {
+        const permiso = await Notification.requestPermission();
+        toast(permiso === 'granted' ? '🔔 Avisos activados' : 'Vale, sin avisos del sistema');
+      } catch (_) {}
+    }
+    render();
+  },
+  'ignorar-prompt-avisos': () => { disp.avisosOfrecidos = true; guardarDisp(); render(); },
+  'alternar-novedades': () => { tmp.novedadesAbiertas = !tmp.novedadesAbiertas; render(); },
+  'descartar-novedades': () => {
+    disp.novedadesPendientes = [];
+    disp.ultimaVista = ahora();
+    guardarDisp();
+    render();
+  }
 };
 
 function sheetSala(codigoNuevo) {
@@ -1770,6 +1882,11 @@ document.addEventListener('change', e => {
     const f = el.files[0];
     el.value = '';
     if (f) procesarTicket(f);
+  }
+  if (el.id === 'foto-portada-mes') {
+    const f = el.files[0];
+    el.value = '';
+    if (f) procesarPortadaMes(f);
   }
   if (el.id === 'mon-gasto') {
     tmp.moneda = el.value;

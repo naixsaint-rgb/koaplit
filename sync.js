@@ -124,11 +124,23 @@
       return salida;
     };
 
+    const fusionaDiccionario = clave => {
+      const salida = {};
+      const claves = new Set([...Object.keys(local[clave] || {}), ...Object.keys(remoto[clave] || {})]);
+      for (const k of claves) {
+        const x = (local[clave] || {})[k], y = (remoto[clave] || {})[k];
+        const elegido = x && y ? (y.mod > x.mod ? y : x) : (x || y);
+        if (!borradoDespuesDe(k, elegido.mod)) salida[k] = elegido;
+      }
+      return salida;
+    };
+
     res.personas = fusionaColeccion('personas');
     res.grupos = fusionaColeccion('grupos');
     res.gastos = fusionaColeccion('gastos');
     res.pagos = fusionaColeccion('pagos');
     res.recurrentes = fusionaColeccion('recurrentes');
+    res.portadasMes = fusionaDiccionario('portadasMes');
 
     // objetivos: LWW de campos + unión de aportes por id
     res.objetivos = fusionaColeccion('objetivos', (x, y) => {
@@ -162,14 +174,22 @@
 
   function aplicarRemoto(remotoBruto) {
     try {
-      const antes = hashEstado(estado);
-      const fusionado = fusionar(estado, remotoBruto);
+      const estadoAntes = estado; // referencia al estado local previo, para diff de avisos
+      const antes = hashEstado(estadoAntes);
+      const remotoSaneado = sanearEstado(remotoBruto);
+      const fusionado = fusionar(estadoAntes, remotoBruto);
       const despues = hashEstado(fusionado);
-      const hashRemoto = hashEstado(sanearEstado(remotoBruto));
+      const hashRemoto = hashEstado(remotoSaneado);
       ultimoHashRecibido = hashRemoto;
       if (despues !== antes) {
         estado = fusionado;
         try { localStorage.setItem(CLAVE, JSON.stringify(estado)); } catch (_) {}
+        if (window.NOTIF) {
+          try {
+            const eventos = window.NOTIF.detectarEventos(estadoAntes, estado, remotoSaneado);
+            window.NOTIF.procesarEventosRemotos(eventos);
+          } catch (_) {}
+        }
         if (typeof render === 'function') render();
       }
       // si tras fusionar tenemos algo que el remoto no tiene, publicamos

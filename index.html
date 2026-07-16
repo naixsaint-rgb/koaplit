@@ -10,7 +10,7 @@
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="stylesheet" href="fonts.css?v=200">
-  <link rel="stylesheet" href="styles.css?v=200">
+  <link rel="stylesheet" href="styles.css?v=201">
 </head>
 <body>
   <div id="aurora" aria-hidden="true"></div>
@@ -123,6 +123,7 @@
   <div id="toasts" aria-live="polite"></div>
   <canvas id="confetti" hidden></canvas>
   <input type="file" id="importador" hidden>
+  <input type="file" id="foto-portada-mes" accept="image/*" hidden>
 
   <!-- ====== FIREBASE OPCIONAL ======
        Si creas firebase-config.js (export const firebaseConfig = {...}) con tu
@@ -150,12 +151,13 @@
   </script>
 
   <!-- ====== APP (el orden importa) ====== -->
-  <script src="i18n.js?v=200"></script>
-  <script src="nucleo.js?v=200"></script>
-  <script src="graficos.js?v=200"></script>
+  <script src="i18n.js?v=201"></script>
+  <script src="nucleo.js?v=201"></script>
+  <script src="graficos.js?v=201"></script>
   <script src="vendor/mqtt.min.js"></script>
-  <script src="sync.js?v=200"></script>
-  <script src="ocr.js?v=200"></script>
-  <script src="ui.js?v=200"></script>
+  <script src="sync.js?v=201"></script>
+  <script src="notificaciones.js?v=201"></script>
+  <script src="ocr.js?v=201"></script>
+  <script src="ui.js?v=201"></script>
 </body>
 </html>

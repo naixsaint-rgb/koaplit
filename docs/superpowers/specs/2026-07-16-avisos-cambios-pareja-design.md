@@ -1,7 +1,7 @@
 # Avisos de cambios de la pareja — diseño
 
 Fecha: 2026-07-16
-Estado: aprobado
+Estado: implementado y verificado (ver notas al final)
 
 ## Contexto
 
@@ -162,3 +162,28 @@ que se usó para probar `fusionar()`):
    comprobar el texto y prioridad correctos.
 6. Confirmar que cambios ignorados (editar nombre, moneda) NO generan
    ningún evento.
+
+## Notas de implementación (2026-07-16)
+
+Implementado sin desviaciones del diseño: `notificaciones.js` (nuevo),
+hook en `sync.js:aplicarRemoto`, banner + prompt de permiso en
+`ui.js:vInicio`, fila de estado en Ajustes. Las 6 pruebas del plan de
+pruebas se ejecutaron en el navegador (consola) contra el flujo real
+(`aplicarRemoto`, no solo funciones sueltas) y pasaron, incluyendo el
+caso negativo (editar nombre no genera aviso) y el mock de
+`Notification`/`document.visibilityState` para el canal de fondo.
+
+Durante la misma sesión se añadieron dos funciones más, fuera del
+alcance original de este spec:
+
+- **Foto de portada mensual**: ver commit correspondiente. Reutiliza
+  el mismo canal de sincronización cifrado sin cambios (la imagen
+  comprimida — JPEG, máx. ~640px, recomprimida hasta caber en 220 000
+  caracteres de dataURL — vive en `estado.portadasMes`, así que
+  sincroniza gratis con el mecanismo LWW ya existente). Añade también
+  un evento de tipo `portada` al sistema de avisos de este spec.
+- **Total anual persistente**: `totalesGrupo()` ahora expone
+  `totalAnual`/`porAno`, mostrado en la hoja de Totales. No requirió
+  cambios de arquitectura — los gastos y pagos nunca se eliminan al
+  saldar, así que el total ya era calculable; solo faltaba mostrarlo
+  agregado por año en la UI.

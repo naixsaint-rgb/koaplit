@@ -158,17 +158,22 @@ function estadoInicial() {
     recurrentes: [],// {id, grupoId, plantilla{desc,importe,categoria,pagadoPor,partes,reparto}, frecuencia, proxima, activo, mod}
     objetivos: [],  // {id, nombre, emoji, meta, fechaLimite, aportes[], completadoEl, mod}
     retos: [],      // {id, nombre, emoji, importePorCheck, checksMeta, modo, checks[], objetivoId, estado, finalizadoEl, mod}
+    portadasMes: {},// {"grupoId·YYYY-MM": {dataUrl, subidoPor, mod}} — foto de cabecera de cada mes
     borrados: {}    // {id: iso} — lápidas para sincronización
   };
 }
 
+const claveMes = (grupoId, ym) => grupoId + '·' + ym;
+const MAX_PORTADA_CHARS = 220000; // ~160KB de imagen — mantiene el estado y el canal de sync ligeros
+
 let estado = null;
-let disp = { yo: 'a', sala: null };
+const DISP_DEFECTO = { yo: 'a', sala: null, novedadesPendientes: [], ultimaVista: null, avisosOfrecidos: false, huboEventoDeFondo: false };
+let disp = Object.assign({}, DISP_DEFECTO);
 
 function cargarDisp() {
   try {
     const d = JSON.parse(localStorage.getItem(CLAVE_DISP) || 'null');
-    if (d && typeof d === 'object') disp = Object.assign({ yo: 'a', sala: null }, d);
+    if (d && typeof d === 'object') disp = Object.assign({}, DISP_DEFECTO, d);
   } catch (_) {}
 }
 function guardarDisp() {
@@ -187,6 +192,8 @@ const sInt = (v, tope) => {
   return Math.max(-(tope || 1e13), Math.min(tope || 1e13, n));
 };
 const sMoneda = m => (typeof m === 'string' && /^[A-Z]{3}$/.test(m) ? m : 'EUR');
+const vClavePortada = s => typeof s === 'string' && s.length <= 50 && /^[a-z0-9_-]{1,40}·\d{4}-\d{2}$/i.test(s);
+const vDataUrlImagen = s => typeof s === 'string' && s.length <= MAX_PORTADA_CHARS && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(s);
 
 function sanearEstado(bruto) {
   const e = estadoInicial();
@@ -336,6 +343,22 @@ function sanearEstado(bruto) {
       finalizadoEl: vISO(r.finalizadoEl) ? r.finalizadoEl : null,
       mod: vISO(r.mod) ? r.mod : ahora()
     });
+  }
+
+  // portadas de mes (fotos de cabecera, comprimidas en el propio dispositivo antes de llegar aquí)
+  if (b.portadasMes && typeof b.portadasMes === 'object') {
+    let nPortadas = 0;
+    for (const [clave, v] of Object.entries(b.portadasMes)) {
+      if (nPortadas >= 600 || !vClavePortada(clave) || !v || typeof v !== 'object') continue;
+      if (!vDataUrlImagen(v.dataUrl)) continue;
+      if (!grupoDe(clave.split('·')[0])) continue;
+      e.portadasMes[clave] = {
+        dataUrl: v.dataUrl,
+        subidoPor: hayPersona(v.subidoPor) ? v.subidoPor : 'a',
+        mod: vISO(v.mod) ? v.mod : ahora()
+      };
+      nPortadas++;
+    }
   }
 
   // lápidas
@@ -561,18 +584,22 @@ function totalesGrupo(gid) {
   const gastos = gastosDe(gid);
   const hoy = hoyISO();
   const mesActual = hoy.slice(0, 7);
+  const anoActual = hoy.slice(0, 4);
   const d = new Date(); d.setMonth(d.getMonth() - 1);
   const mesPrevio = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
   const res = {
-    total: 0, mesActual: 0, mesPrevio: 0,
-    porCategoria: {}, porPersona: {}, parteJusta: {}, porMes: {}
+    total: 0, mesActual: 0, mesPrevio: 0, anoActual, totalAnual: 0,
+    porCategoria: {}, porPersona: {}, parteJusta: {}, porMes: {}, porAno: {}
   };
   for (const g of gastos) {
     res.total += g.importe;
     const ym = g.fecha.slice(0, 7);
+    const an = g.fecha.slice(0, 4);
     res.porMes[ym] = (res.porMes[ym] || 0) + g.importe;
+    res.porAno[an] = (res.porAno[an] || 0) + g.importe;
     if (ym === mesActual) res.mesActual += g.importe;
     if (ym === mesPrevio) res.mesPrevio += g.importe;
+    if (an === anoActual) res.totalAnual += g.importe;
     res.porCategoria[g.categoria] = (res.porCategoria[g.categoria] || 0) + g.importe;
     res.porPersona[g.pagadoPor] = (res.porPersona[g.pagadoPor] || 0) + g.importe;
     for (const [pid, parte] of Object.entries(g.partes)) {
@@ -580,6 +607,44 @@ function totalesGrupo(gid) {
     }
   }
   return res;
+}
+
+/* ---------- foto de portada mensual ---------- */
+function portadaMes(grupoId, ym) { return estado.portadasMes[claveMes(grupoId, ym)] || null; }
+function guardarPortadaMes(grupoId, ym, dataUrl, miembro) {
+  estado.portadasMes[claveMes(grupoId, ym)] = { dataUrl, subidoPor: miembro, mod: ahora() };
+}
+function quitarPortadaMes(grupoId, ym) {
+  const clave = claveMes(grupoId, ym);
+  delete estado.portadasMes[clave];
+  marcarBorrado(clave);
+}
+
+/* redimensiona y comprime una imagen a JPEG pequeño, para caber en localStorage y en el canal de sync */
+function comprimirImagen(archivo) {
+  return new Promise((ok, ko) => {
+    const url = URL.createObjectURL(archivo);
+    const img = new Image();
+    img.onload = () => {
+      const ANCHO_MAX = 640;
+      let w = img.width, h = img.height;
+      if (w > ANCHO_MAX) { h = Math.round(h * ANCHO_MAX / w); w = ANCHO_MAX; }
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      let calidad = 0.72;
+      let dataUrl = c.toDataURL('image/jpeg', calidad);
+      while (dataUrl.length > MAX_PORTADA_CHARS && calidad > 0.25) {
+        calidad -= 0.12;
+        dataUrl = c.toDataURL('image/jpeg', calidad);
+      }
+      if (dataUrl.length > MAX_PORTADA_CHARS) { ko(new Error('demasiado grande')); return; }
+      ok(dataUrl);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); ko(new Error('imagen inválida')); };
+    img.src = url;
+  });
 }
 
 /* ---------- metas ---------- */
