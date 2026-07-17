@@ -37,6 +37,39 @@ let confirmCb = null;
 let timerCierreSheet = null;
 let sheetEnHistorial = false;
 let csvFilas = null;
+let promptInstalar = null;
+let bannerInstalarOculto = false;
+
+/* ---------- instalación (añadir a pantalla de inicio) ---------- */
+function esStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches
+    || window.matchMedia('(display-mode: fullscreen)').matches
+    || window.navigator.standalone === true;
+}
+function esIOS() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent || '') && !window.MSStream;
+}
+function esSafari() {
+  const ua = navigator.userAgent || '';
+  return /safari/i.test(ua) && !/crios|fxios|edgios|chrome|android/i.test(ua);
+}
+function esNavegadorInApp() {
+  return /FBAN|FBAV|FB_IAB|Instagram|Line\/|Twitter|TikTok|Snapchat|WhatsApp|Telegram|WeChat|MicroMessenger|GSA/i.test(navigator.userAgent || '');
+}
+function puedeMostrarInstalar() {
+  return !esStandalone();
+}
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  promptInstalar = e;
+  if (typeof render === 'function' && hayPareja()) render();
+});
+window.addEventListener('appinstalled', () => {
+  promptInstalar = null;
+  toast('¡App instalada! Ábrela desde su icono 🎉');
+  if (typeof render === 'function') render();
+});
 
 /* ---------- utilidades UI ---------- */
 function toast(msg) {
@@ -219,6 +252,51 @@ function htmlPromptAvisos() {
   </div>`;
 }
 
+function htmlBannerInstalar() {
+  if (!puedeMostrarInstalar() || bannerInstalarOculto) return '';
+  return `<div class="carta prompt-avisos" style="border-color:rgba(111,245,200,.35)">
+    <span class="prompt-avisos-emoji">📲</span>
+    <div class="prompt-avisos-texto">Instala KOAPLIT en tu móvil para tenerla como una app</div>
+    <button class="btn-suave" data-action="descartar-instalar">Ahora no</button>
+    <button class="btn-principal prompt-avisos-btn" data-action="instalar-app">Instalar</button>
+  </div>`;
+}
+
+function sheetInstalar() {
+  let pasos;
+  if (esNavegadorInApp()) {
+    pasos = `<div class="carta" style="padding:16px;margin-bottom:12px">
+      <p style="font-size:14.5px;line-height:1.6">Estás abriendo KOAPLIT dentro de otra app (WhatsApp, Instagram…) y desde ahí no se puede instalar.</p>
+      <p style="font-size:14.5px;line-height:1.6;margin-top:10px"><b>Ábrela en tu navegador:</b> toca el menú <b>⋮</b> (arriba a la derecha) → <b>"Abrir en Chrome"</b> (o en tu navegador). Luego vuelve a pulsar Instalar.</p>
+    </div>
+    <button class="btn-principal btn-bloque" data-action="copiar-enlace-app">📋 Copiar el enlace para abrirlo en el navegador</button>`;
+  } else if (esIOS()) {
+    pasos = `<div class="carta" style="padding:16px">
+      <p style="font-size:14.5px;line-height:1.7">
+        <b>1.</b> Asegúrate de estar en <b>Safari</b>.<br>
+        <b>2.</b> Toca el botón <b>Compartir</b> (el cuadrado con la flecha ↑, abajo).<br>
+        <b>3.</b> Baja y toca <b>"Añadir a pantalla de inicio"</b>.<br>
+        <b>4.</b> Confirma con <b>"Añadir"</b>.
+      </p>
+    </div>`;
+  } else {
+    pasos = `<div class="carta" style="padding:16px">
+      <p style="font-size:14.5px;line-height:1.7">
+        <b>1.</b> Toca el menú <b>⋮</b> (arriba a la derecha).<br>
+        <b>2.</b> Toca <b>"Instalar app"</b> o <b>"Añadir a pantalla de inicio"</b>.<br>
+        <b>3.</b> Confirma.
+      </p>
+    </div>`;
+  }
+  abrirSheet(`
+    <h3 class="sheet-titulo">📲 Instalar KOAPLIT
+      <button class="btn-icono" data-action="cerrar-sheet" aria-label="✕">✕</button>
+    </h3>
+    ${pasos}
+    <p style="color:var(--bruma);font-size:12.5px;text-align:center;margin-top:14px">Una vez instalada, ábrela siempre desde su icono 🐨 — así funciona a pantalla completa y sin conexión.</p>
+  `);
+}
+
 function htmlBannerNovedades() {
   const lista = disp.novedadesPendientes || [];
   if (!lista.length) return '';
@@ -253,7 +331,7 @@ function vInicio() {
       <div class="balance-quien">${emojiDe(deudor)} ${t('leDebe', '<b>' + esc(nombre(deudor)) + '</b>', '<b>' + esc(nombre(acreedor)) + '</b>')} ${emojiDe(acreedor)}</div>`;
   }
 
-  let h = htmlPromptAvisos() + htmlBannerNovedades();
+  let h = htmlBannerInstalar() + htmlPromptAvisos() + htmlBannerNovedades();
   h += `<div class="saludo-koala"><span class="koala">🐨</span><div class="burbuja">${mensajeKoala()}</div></div>
     <div class="carta carta-balance">
       <div class="nieve-mini" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
@@ -1456,6 +1534,10 @@ function sheetAjustes() {
     <h3 class="sheet-titulo">${t('ajustes')}
       <button class="btn-icono" data-action="cerrar-sheet" aria-label="✕">✕</button>
     </h3>
+    ${puedeMostrarInstalar() ? `<div class="ajuste-fila">
+      <div class="aj-texto"><b>📲 Instalar en el móvil</b><span>Tenerla como una app, a pantalla completa y offline</span></div>
+      <button class="btn-principal" style="padding:9px 16px" data-action="instalar-app">Instalar</button>
+    </div>` : ''}
     <div class="ajuste-fila">
       <div class="aj-texto"><b>${emojiDe('a')} ${esc(nombre('a'))} + ${emojiDe('b')} ${esc(nombre('b'))}</b><span>${t('vosotrosDos')}</span></div>
       <button class="btn-suave" data-action="editar-pareja">✏️</button>
@@ -1896,8 +1978,8 @@ const acciones = {
     toast(`${(TEMAS.find(t => t[0] === disp.tema) || [])[2] || ''} Tema ${nombreTema} activado`);
   },
   'sala-desde-ajustes': () => {
-    cerrarSheet();
-    // sin sala: mostramos el onboarding de emparejamiento reutilizando la UI existente
+    // reemplaza la hoja actual en el sitio (NO cerrarSheet + abrir: eso dispara
+    // un history.back() asíncrono que cerraría la hoja recién abierta un instante después)
     sheetSala();
   },
   'crear-sala-sheet': async () => {
@@ -1926,6 +2008,25 @@ const acciones = {
     render();
   },
   'ignorar-prompt-avisos': () => { disp.avisosOfrecidos = true; guardarDisp(); render(); },
+  'instalar-app': async () => {
+    if (promptInstalar) {
+      try {
+        promptInstalar.prompt();
+        const res = await promptInstalar.userChoice;
+        promptInstalar = null;
+        if (res && res.outcome === 'accepted') toast('Instalando… 📲');
+        render();
+      } catch (_) { sheetInstalar(); }
+      return;
+    }
+    sheetInstalar();
+  },
+  'descartar-instalar': () => { bannerInstalarOculto = true; render(); },
+  'copiar-enlace-app': async () => {
+    const limpio = location.origin + location.pathname;
+    try { await navigator.clipboard.writeText(limpio); toast('Enlace copiado — ábrelo en Chrome 📋'); }
+    catch (_) { toast(limpio); }
+  },
   'alternar-novedades': () => { tmp.novedadesAbiertas = !tmp.novedadesAbiertas; render(); },
   'descartar-novedades': () => {
     disp.novedadesPendientes = [];
