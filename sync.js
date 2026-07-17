@@ -225,11 +225,11 @@
     SYNC.estado = s;
     const el = document.getElementById('syncStatus');
     if (!el) return;
-    el.hidden = false;
-    if (s === 'conectado') { el.textContent = t('sincronizado'); el.style.color = '#8f8'; }
-    else if (s === 'conectando') { el.textContent = t('conectando'); el.style.color = '#fd6'; }
-    else if (s === 'desconectado') { el.textContent = t('sinConexion'); el.style.color = '#aab'; }
-    else { el.textContent = t('soloLocal'); el.style.color = '#778'; }
+    el.classList.remove('verde', 'amarillo', 'rojo');
+    if (s === 'conectado') { el.hidden = false; el.classList.add('verde'); el.title = t('sincronizado'); }
+    else if (s === 'conectando') { el.hidden = false; el.classList.add('amarillo'); el.title = t('conectando'); }
+    else if (s === 'desconectado') { el.hidden = false; el.classList.add('rojo'); el.title = t('sinConexion'); }
+    else { el.hidden = true; el.title = ''; } // sin sala: nada que sincronizar, ocultamos el punto
   }
 
   async function conectar(codigo) {

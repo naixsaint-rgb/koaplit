@@ -15,7 +15,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="stylesheet" href="fonts.css?v=204">
-  <link rel="stylesheet" href="styles.css?v=205">
+  <link rel="stylesheet" href="styles.css?v=206">
 </head>
 <body>
   <div id="aurora" aria-hidden="true"></div>
@@ -33,41 +33,45 @@
         <p class="onb-lema">Gastos a medias, sueños enteros.</p>
       </div>
 
-      <form id="form-pareja" autocomplete="off">
-        <div class="onb-campos">
-          <div class="campo-persona menta">
-            <label for="nombre-a">Tú</label>
-            <input id="nombre-a" type="text" maxlength="20" placeholder="Tu nombre" required>
-            <div class="emojis" data-para="emoji-a">
-              <button type="button" class="activo">🦊</button><button type="button">🐨</button><button type="button">🐻</button><button type="button">🦉</button><button type="button">🐺</button><button type="button">🐰</button><button type="button">🦝</button><button type="button">🐹</button><button type="button">🦌</button><button type="button">🐱</button><button type="button">🐭</button>
-            </div>
-          </div>
-          <div class="onb-mas" aria-hidden="true">+</div>
-          <div class="campo-persona coral">
-            <label for="nombre-b">Tu pareja</label>
-            <input id="nombre-b" type="text" maxlength="20" placeholder="Su nombre" required>
-            <div class="emojis" data-para="emoji-b">
-              <button type="button">🦊</button><button type="button">🐨</button><button type="button">🐻</button><button type="button">🦉</button><button type="button">🐺</button><button type="button" class="activo">🐰</button><button type="button">🦝</button><button type="button">🐹</button><button type="button">🦌</button><button type="button">🐱</button><button type="button">🐭</button>
-            </div>
-          </div>
-        </div>
-        <button type="submit" class="btn-principal onb-btn" id="btnGuardarNombres">Guardar nombres ❄️</button>
+      <div class="onb-modo" id="onbModo">
+        <button type="button" class="activo" data-modo="crear">💑 Empezar juntos</button>
+        <button type="button" data-modo="unirse">🔗 Tengo un código</button>
+      </div>
 
-        <!-- Emparejamiento por código de sala (sincronización entre móviles) -->
-        <div class="onb-sala">
-          <label for="roomCodeInput">🔑 Código de sala</label>
-          <input id="roomCodeInput" type="text" maxlength="6" placeholder="6 caracteres" autocomplete="off">
-          <div class="onb-sala-botones">
-            <button type="button" id="btnCreateRoom" class="btn-suave">➕ Crear sala</button>
-            <button type="button" id="btnJoinRoom" class="btn-secundario">🔗 Unirse</button>
+      <!-- Vista CREAR: solo tu nombre; la pareja se añade al unirse -->
+      <form id="form-crear" class="onb-vista" autocomplete="off">
+        <div class="campo-persona menta">
+          <label for="nombre-a">Tu nombre</label>
+          <input id="nombre-a" type="text" maxlength="20" placeholder="Cómo te llamas" required>
+          <div class="emojis" data-para="emoji-a">
+            <button type="button" class="activo">🦊</button><button type="button">🐨</button><button type="button">🐻</button><button type="button">🦉</button><button type="button">🐺</button><button type="button">🐰</button><button type="button">🦝</button><button type="button">🐹</button><button type="button">🦌</button><button type="button">🐱</button><button type="button">🐭</button>
           </div>
-          <p id="pairingMsg"></p>
-          <p class="onb-sala-nota">
-            La sincronización viaja cifrada de extremo a extremo: solo quien tenga el código puede leerla.
-            También funciona sin sala, guardando todo solo en este móvil.
-          </p>
         </div>
+        <p class="onb-nota-crear">El nombre de tu pareja se añadirá solo cuando se una a la sala con vuestro código. 🔒</p>
+        <button type="submit" class="btn-principal onb-btn">➕ Crear sala y empezar</button>
+        <button type="button" class="onb-solo" id="btnSolo">o usarla solo en este móvil</button>
       </form>
+
+      <!-- Vista UNIRSE: código + tu nombre -->
+      <form id="form-unirse" class="onb-vista" hidden autocomplete="off">
+        <div class="onb-sala">
+          <label for="roomCodeInput">Código de sala de tu pareja</label>
+          <input id="roomCodeInput" type="text" maxlength="6" placeholder="6 caracteres" autocomplete="off">
+        </div>
+        <div class="campo-persona coral">
+          <label for="nombre-b">Tu nombre</label>
+          <input id="nombre-b" type="text" maxlength="20" placeholder="Cómo te llamas">
+          <div class="emojis" data-para="emoji-b">
+            <button type="button" class="activo">🐰</button><button type="button">🦝</button><button type="button">🐹</button><button type="button">🦌</button><button type="button">🐱</button><button type="button">🐭</button><button type="button">🦊</button><button type="button">🐨</button><button type="button">🐻</button><button type="button">🦉</button><button type="button">🐺</button>
+          </div>
+        </div>
+        <button type="submit" class="btn-principal onb-btn">🔗 Unirme a la sala</button>
+      </form>
+
+      <p id="pairingMsg"></p>
+      <p class="onb-sala-nota">
+        La sincronización viaja cifrada de extremo a extremo: solo quien tenga el código puede leerla.
+      </p>
     </div>
     <svg class="onb-montes" viewBox="0 0 480 120" preserveAspectRatio="none" aria-hidden="true">
       <path d="M0 120 L70 40 L120 90 L190 15 L260 95 L330 35 L400 100 L480 50 L480 120 Z" fill="rgba(127,196,255,.10)"/>
@@ -77,12 +81,11 @@
 
   <!-- ========== APP PRINCIPAL ========== -->
   <div id="app" hidden>
-    <div id="syncStatus" hidden>⚪</div>
-
     <header id="cabecera">
       <div class="marca">
         <span class="marca-koala">🐨</span>
         <span class="marca-nombre">KOA<em>PLIT</em></span>
+        <span id="syncStatus" class="sync-dot" hidden aria-hidden="true"></span>
       </div>
       <button class="btn-icono" data-action="abrir-ajustes" aria-label="Ajustes">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
@@ -160,10 +163,10 @@
   <script src="nucleo.js?v=204"></script>
   <script src="graficos.js?v=201"></script>
   <script src="vendor/mqtt.min.js"></script>
-  <script src="sync.js?v=203"></script>
+  <script src="sync.js?v=206"></script>
   <script src="notificaciones.js?v=203"></script>
   <script src="ocr.js?v=201"></script>
   <script src="vendor/qrcode.min.js"></script>
-  <script src="ui.js?v=206"></script>
+  <script src="ui.js?v=207"></script>
 </body>
 </html>

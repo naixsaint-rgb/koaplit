@@ -208,14 +208,6 @@ function renderInterno() {
 function actualizarTextosFijos() {
   const set = (sel, txt) => { const el = document.querySelector(sel); if (el) el.textContent = txt; };
   set('.onb-lema', t('lema'));
-  set('label[for="nombre-a"]', t('tu'));
-  set('label[for="nombre-b"]', t('tuPareja'));
-  const na = $('#nombre-a'); if (na) na.placeholder = t('tuNombre');
-  const nb = $('#nombre-b'); if (nb) nb.placeholder = t('suNombre');
-  set('#btnGuardarNombres', t('guardarNombres'));
-  set('#btnCreateRoom', t('crearSala'));
-  set('#btnJoinRoom', t('unirseSala'));
-  const rc = $('#roomCodeInput'); if (rc) rc.placeholder = t('seisDigitos');
   document.querySelectorAll('#navegacion button span').forEach((s, i) => {
     s.textContent = [t('inicio'), t('gastos'), t('metas'), t('retos')][i];
   });
@@ -2245,57 +2237,87 @@ document.addEventListener('change', e => {
 $('#velo').addEventListener('click', e => { if (e.target.id === 'velo') cerrarSheet(); });
 
 /* ---------- onboarding y emparejamiento ---------- */
-$('#form-pareja').addEventListener('submit', e => {
-  e.preventDefault();
-  const na = $('#nombre-a').value.trim();
-  const nb = $('#nombre-b').value.trim();
-  if (!na || !nb) return;
-  const m = ahora();
-  const yaA = estado.personas.find(p => p.id === 'a');
-  const yaB = estado.personas.find(p => p.id === 'b');
-  if (yaA) { yaA.nombre = na; yaA.emoji = textoEmojiActivo('emoji-a') || yaA.emoji; yaA.mod = m; }
-  else estado.personas.push({ id: 'a', nombre: na, emoji: textoEmojiActivo('emoji-a') || '🦊', mod: m });
-  if (yaB) { yaB.nombre = nb; yaB.emoji = textoEmojiActivo('emoji-b') || yaB.emoji; yaB.mod = m; }
-  else estado.personas.push({ id: 'b', nombre: nb, emoji: textoEmojiActivo('emoji-b') || '🐰', mod: m });
-  if (!grupoPareja()) estado.grupos.unshift(grupoParejaNuevo(estado.ajustes.moneda));
-  guardar(); render();
-  toast(t('bienvenidos', na, nb));
-});
+const MOD_ANTIGUO = '1970-01-01T00:00:00.000Z';
 
 function msgPairing(txt) {
   const el = $('#pairingMsg');
   if (el) el.textContent = txt;
 }
-const btnCrear = $('#btnCreateRoom');
-if (btnCrear) btnCrear.addEventListener('click', async () => {
-  if (!hayPareja()) {
-    // permite crear sala antes de guardar nombres: guarda unos por defecto si están escritos
-    const na = $('#nombre-a').value.trim(), nb = $('#nombre-b').value.trim();
-    if (!na || !nb) { msgPairing(t('nombresPrimero')); return; }
-    $('#form-pareja').requestSubmit();
-  }
+function crearPersonaYo(id, nombre, emoji) {
+  estado.personas.push({ id, nombre, emoji, mod: ahora() });
+}
+function crearPersonaPendiente(id, emoji) {
+  // pareja aún desconocida: nombre-marcador + mod antiquísimo, para que el nombre real
+  // de la pareja gane siempre al sincronizar (LWW por fecha de modificación)
+  estado.personas.push({ id, nombre: 'Tu pareja', emoji, mod: MOD_ANTIGUO });
+}
+function asegurarGrupoPareja() {
+  if (!grupoPareja()) estado.grupos.unshift(grupoParejaNuevo(estado.ajustes.moneda));
+}
+
+// conmutar entre "crear" y "unirse"
+document.querySelectorAll('#onbModo button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#onbModo button').forEach(x => x.classList.toggle('activo', x === b));
+  const modo = b.dataset.modo;
+  $('#form-crear').hidden = modo !== 'crear';
+  $('#form-unirse').hidden = modo !== 'unirse';
+  msgPairing('');
+}));
+
+// CREAR: pongo solo mi nombre; la pareja se añade cuando se una
+$('#form-crear').addEventListener('submit', async e => {
+  e.preventDefault();
+  const na = $('#nombre-a').value.trim();
+  if (!na) { $('#nombre-a').focus(); return; }
+  disp.yo = 'a'; guardarDisp();
+  crearPersonaYo('a', na, textoEmojiActivo('emoji-a') || '🦊');
+  crearPersonaPendiente('b', '🐰');
+  asegurarGrupoPareja();
+  guardar(); render();
   const codigo = await window.SYNC.crearSala();
-  const inp = $('#roomCodeInput');
-  if (inp) inp.value = codigo;
-  msgPairing(t('salaCreada', codigo));
-  toast(t('salaCreada', codigo));
+  if (codigo) sheetSala(codigo); // muestra el código + QR para compartir de inmediato
 });
-const btnUnirse = $('#btnJoinRoom');
-if (btnUnirse) btnUnirse.addEventListener('click', async () => {
-  const inp = $('#roomCodeInput');
-  const codigo = await window.SYNC.unirseSala(inp ? inp.value : '');
-  if (!codigo) { msgPairing(t('salaInvalida')); return; }
-  msgPairing(t('salaUnida', codigo));
+
+// solo en este móvil (sin sala)
+const btnSolo = $('#btnSolo');
+if (btnSolo) btnSolo.addEventListener('click', () => {
+  const na = $('#nombre-a').value.trim();
+  if (!na) { $('#nombre-a').focus(); msgPairing('Pon tu nombre primero 😊'); return; }
+  disp.yo = 'a'; guardarDisp();
+  crearPersonaYo('a', na, textoEmojiActivo('emoji-a') || '🦊');
+  crearPersonaPendiente('b', '🐰');
+  asegurarGrupoPareja();
+  guardar(); render();
+  toast('Podéis conectaros luego desde Ajustes 📡');
+});
+
+// UNIRSE: código de la pareja + mi nombre
+$('#form-unirse').addEventListener('submit', async e => {
+  e.preventDefault();
+  const codigo = ($('#roomCodeInput').value || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+  if (codigo.length !== 6) { msgPairing(t('salaInvalida')); return; }
+  const nb = $('#nombre-b').value.trim();
+  if (!nb) { $('#nombre-b').focus(); msgPairing('Pon tu nombre 😊'); return; }
+  disp.yo = 'b'; guardarDisp();
+  crearPersonaYo('b', nb, textoEmojiActivo('emoji-b') || '🐰');
+  crearPersonaPendiente('a', '🦊');
+  asegurarGrupoPareja();
+  guardar();
+  const ok = await window.SYNC.unirseSala(codigo);
+  if (!ok) { msgPairing(t('salaInvalida')); return; }
+  render();
   toast(t('salaUnida', codigo));
-  // si aún no hay nombres, el estado remoto los traerá al fusionar
 });
 
 /* ---------- arranque ---------- */
 const salaInvitacion = new URLSearchParams(location.search).get('sala');
 if (salaInvitacion && !hayPareja()) {
+  // llega por un enlace de invitación: abrir directamente la vista "unirse" con el código puesto
+  const btnUnirseModo = document.querySelector('#onbModo button[data-modo="unirse"]');
+  if (btnUnirseModo) btnUnirseModo.click();
   const inp = $('#roomCodeInput');
   if (inp) inp.value = salaInvitacion.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
-  msgPairing('👋 Te han invitado a una sala. Pon tu nombre y pulsa "Unirse".');
+  msgPairing('👋 Te han invitado. Pon tu nombre y pulsa "Unirme".');
 }
 
 const generados = materializarRecurrentes();
