@@ -1470,6 +1470,17 @@ function sheetAjustes() {
         ${IDIOMAS.map(i => `<option value="${i[0]}" ${window.idiomaActual === i[0] ? 'selected' : ''}>${i[1]}</option>`).join('')}
       </select>
     </div>
+    <div class="ajuste-fila" style="flex-direction:column;align-items:stretch;gap:10px">
+      <div class="aj-texto"><b>🎨 Tema visual</b><span>Solo en este móvil, no se comparte con tu pareja</span></div>
+      <div class="grid-temas">
+        ${TEMAS.map(([clave, nombreTema, emoji]) => `
+          <button type="button" class="chip-tema tema-${clave} ${disp.tema === clave ? 'activo' : ''}" data-action="elegir-tema" data-valor="${clave}">
+            <span class="chip-tema-muestra"></span>
+            <span class="chip-tema-emoji">${emoji}</span>
+            <span class="chip-tema-nombre">${nombreTema}</span>
+          </button>`).join('')}
+      </div>
+    </div>
     <div class="ajuste-fila">
       <div class="aj-texto"><b>${t('monedaAjuste')}</b><span>${esc(nombreMoneda(monedaPareja()))}</span></div>
       <select id="sel-moneda" class="select-mini">
@@ -1874,6 +1885,14 @@ const acciones = {
     });
   },
   'salir-sala': () => { window.SYNC.salirSala(); sheetAjustes(); toast(t('sinSala')); },
+  'elegir-tema': b => {
+    disp.tema = b.dataset.valor;
+    guardarDisp();
+    aplicarTema();
+    sheetAjustes();
+    const nombreTema = (TEMAS.find(t => t[0] === disp.tema) || [])[1];
+    toast(`${(TEMAS.find(t => t[0] === disp.tema) || [])[2] || ''} Tema ${nombreTema} activado`);
+  },
   'sala-desde-ajustes': () => {
     cerrarSheet();
     // sin sala: mostramos el onboarding de emparejamiento reutilizando la UI existente

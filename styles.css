@@ -391,7 +391,7 @@ h1, h2, h3 { font-family: var(--fuente-titulo); font-weight: 700; letter-spacing
   height: calc(var(--nav-alto) + env(safe-area-inset-bottom));
   padding-bottom: env(safe-area-inset-bottom);
   display: grid; grid-template-columns: repeat(4, 1fr);
-  background: rgba(13, 24, 43, .88);
+  background: color-mix(in srgb, var(--noche-2) 88%, transparent);
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   border-top: 1px solid var(--linea);
 }
@@ -667,7 +667,7 @@ h1, h2, h3 { font-family: var(--fuente-titulo); font-weight: 700; letter-spacing
   position: fixed; z-index: 21;
   top: calc(10px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
   padding: 4px 12px; border-radius: 99px;
-  background: rgba(13, 24, 43, .85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--noche-2) 85%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--linea);
   font-size: 11px; font-weight: 600; letter-spacing: .03em; color: var(--bruma);
   pointer-events: none;
@@ -691,6 +691,92 @@ h1, h2, h3 { font-family: var(--fuente-titulo); font-weight: 700; letter-spacing
   max-width: 150px;
 }
 input[type="checkbox"] { color-scheme: dark; }
+
+/* ============================================================
+   TEMAS VISUALES
+   ============================================================ */
+.grid-temas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.chip-tema {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+  padding: 10px 12px; border-radius: var(--radio-s);
+  background: var(--carta); border: 1.5px solid var(--linea);
+  transition: transform .15s, border-color .15s;
+}
+.chip-tema:active { transform: scale(.96); }
+.chip-tema.activo { border-color: var(--menta); }
+.chip-tema-muestra { display: block; width: 100%; height: 20px; border-radius: 8px; }
+.chip-tema-emoji { font-size: 15px; }
+.chip-tema-nombre { font-size: 12px; font-weight: 600; color: var(--nieve); }
+
+.tema-alpina .chip-tema-muestra { background: linear-gradient(115deg, #6FF5C8, #7FC4FF, #B89CFF); }
+.tema-sabana .chip-tema-muestra { background: linear-gradient(115deg, #E8942D, #F0B429, #4F8A3E); }
+.tema-arcade .chip-tema-muestra { background: linear-gradient(115deg, #39FF88, #4DE8FF, #FF3D7F); }
+.tema-pastel .chip-tema-muestra { background: linear-gradient(115deg, #9CAF88, #C9A876, #C97B6B); }
+.tema-neon .chip-tema-muestra { background: linear-gradient(115deg, #00F0FF, #B14DFF, #FF2E9A); }
+.tema-bosque .chip-tema-muestra { background: linear-gradient(115deg, #FFD866, #7ED9A8, #4FA8D9); }
+.tema-oceano .chip-tema-muestra { background: linear-gradient(115deg, #4FE0C8, #6FBFFF, #FF9A7B); }
+
+:root[data-tema="sabana"] {
+  --noche: #241608; --noche-2: #2E1D0D; --carta: #3A2612; --carta-2: #4A3018;
+  --linea: rgba(232,190,120,.20); --nieve: #FBF1DC; --bruma: #C9A876;
+  --menta: #E8942D; --menta-osc: #4A2E0C; --coral: #6FAA4C; --coral-osc: #1C3315;
+  --hielo: #E8C878; --oro: #F0B429; --peligro: #E2574A;
+  --aurora: linear-gradient(115deg, #E8942D 0%, #F0B429 55%, #6FAA4C 100%);
+}
+:root[data-tema="arcade"] {
+  --noche: #14091F; --noche-2: #1C0E2B; --carta: #251238; --carta-2: #331A4D;
+  --linea: rgba(255,0,255,.24); --nieve: #F0FFFA; --bruma: #A69AD1;
+  --menta: #39FF88; --menta-osc: #0A3320; --coral: #FF3D7F; --coral-osc: #4A0E28;
+  --hielo: #4DE8FF; --oro: #FFE94D; --peligro: #FF3355;
+  --aurora: linear-gradient(115deg, #39FF88 0%, #4DE8FF 55%, #FF3D7F 100%);
+  --fuente-titulo: 'VT323', 'Fraunces', Georgia, serif;
+}
+:root[data-tema="arcade"] .balance-cifra,
+:root[data-tema="arcade"] .onb-logo h1,
+:root[data-tema="arcade"] .marca-nombre { letter-spacing: .04em; }
+:root[data-tema="pastel"] {
+  --noche: #F7F3EE; --noche-2: #EFE7DE; --carta: #FFFFFF; --carta-2: #FBF6EF;
+  --linea: rgba(60,50,40,.14); --nieve: #2B241C; --bruma: #8D8274;
+  --menta: #6B9955; --menta-osc: #E1EAD8; --coral: #C97B6B; --coral-osc: #F3E0DA;
+  --hielo: #6B8CAE; --oro: #B9862E; --peligro: #C1554A;
+  --aurora: linear-gradient(115deg, #9CAF88 0%, #C9A876 55%, #C97B6B 100%);
+  --sombra: 0 10px 26px -16px rgba(60,50,40,.20);
+}
+:root[data-tema="pastel"] #grano { opacity: .12; }
+:root[data-tema="pastel"] #aurora { opacity: .5; }
+:root[data-tema="pastel"] .check-compra { color: var(--carta); }
+:root[data-tema="neon"] {
+  --noche: #08060F; --noche-2: #0F0B1C; --carta: #16102A; --carta-2: #1E1638;
+  --linea: rgba(255,0,230,.22); --nieve: #F2E9FF; --bruma: #9C8FC4;
+  --menta: #00F0FF; --menta-osc: #002E33; --coral: #FF2E9A; --coral-osc: #3D0A24;
+  --hielo: #B14DFF; --oro: #FFE94D; --peligro: #FF3355;
+  --aurora: linear-gradient(115deg, #00F0FF 0%, #B14DFF 55%, #FF2E9A 100%);
+}
+:root[data-tema="neon"] .balance-cifra,
+:root[data-tema="neon"] .stat-num,
+:root[data-tema="neon"] .meta-actual { text-shadow: 0 0 16px currentColor; }
+:root[data-tema="bosque"] {
+  --noche: #05130D; --noche-2: #0A1F16; --carta: #0F2A1D; --carta-2: #163825;
+  --linea: rgba(180,214,150,.18); --nieve: #F1F7EC; --bruma: #A0BFA0;
+  --menta: #FFD866; --menta-osc: #4A3A0A; --coral: #7ED9A8; --coral-osc: #16332A;
+  --hielo: #8FD9C4; --oro: #FFD866; --peligro: #FF6F6F;
+  --aurora: linear-gradient(115deg, #FFD866 0%, #7ED9A8 55%, #4FA8D9 100%);
+}
+:root[data-tema="bosque"] .onb-nieve span,
+:root[data-tema="bosque"] .nieve-mini span {
+  background: #FFE9A8; box-shadow: 0 0 6px 1px rgba(255,216,102,.8);
+}
+:root[data-tema="oceano"] {
+  --noche: #041220; --noche-2: #08202F; --carta: #0D2E40; --carta-2: #123F55;
+  --linea: rgba(140,220,220,.18); --nieve: #EAFBFA; --bruma: #86B8C4;
+  --menta: #4FE0C8; --menta-osc: #0A3D34; --coral: #FF9A7B; --coral-osc: #45211A;
+  --hielo: #6FBFFF; --oro: #FFD37A; --peligro: #FF7B8A;
+  --aurora: linear-gradient(115deg, #4FE0C8 0%, #6FBFFF 55%, #FF9A7B 100%);
+}
+:root[data-tema="oceano"] .onb-nieve span,
+:root[data-tema="oceano"] .nieve-mini span {
+  background: #8FE8FF; box-shadow: 0 0 6px 1px rgba(79,224,200,.7);
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }

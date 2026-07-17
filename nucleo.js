@@ -167,8 +167,19 @@ function estadoInicial() {
 const claveMes = (grupoId, ym) => grupoId + '·' + ym;
 const MAX_PORTADA_CHARS = 220000; // ~160KB de imagen — mantiene el estado y el canal de sync ligeros
 
+const TEMAS = [
+  ['alpina', 'Noche alpina', '🐨'],
+  ['sabana', 'Sabana', '🦁'],
+  ['arcade', 'Retro arcade', '🕹️'],
+  ['pastel', 'Minimal pastel', '✨'],
+  ['neon', 'Neón', '👾'],
+  ['bosque', 'Bosque encantado', '🦊'],
+  ['oceano', 'Océano', '🐬']
+];
+const CLAVES_TEMA = TEMAS.map(t => t[0]);
+
 let estado = null;
-const DISP_DEFECTO = { yo: 'a', sala: null, novedadesPendientes: [], ultimaVista: null, avisosOfrecidos: false, huboEventoDeFondo: false };
+const DISP_DEFECTO = { yo: 'a', sala: null, novedadesPendientes: [], ultimaVista: null, avisosOfrecidos: false, huboEventoDeFondo: false, tema: 'alpina' };
 let disp = Object.assign({}, DISP_DEFECTO);
 
 function cargarDisp() {
@@ -176,6 +187,10 @@ function cargarDisp() {
     const d = JSON.parse(localStorage.getItem(CLAVE_DISP) || 'null');
     if (d && typeof d === 'object') disp = Object.assign({}, DISP_DEFECTO, d);
   } catch (_) {}
+  if (!CLAVES_TEMA.includes(disp.tema)) disp.tema = 'alpina';
+}
+function aplicarTema() {
+  document.documentElement.dataset.tema = disp.tema;
 }
 function guardarDisp() {
   try { localStorage.setItem(CLAVE_DISP, JSON.stringify(disp)); } catch (_) {}
@@ -774,6 +789,7 @@ function normalizarFecha(s) {
 
 /* ---------- arranque del núcleo ---------- */
 cargarDisp();
+aplicarTema();
 estado = cargar();
 try {
   if (!localStorage.getItem(CLAVE)) localStorage.setItem(CLAVE, JSON.stringify(estado));
