@@ -25,7 +25,7 @@ const PLANTILLAS_RETO = () => [
   { emoji: '🛒', nombre: t('plLista'), desc: t('plListaDesc'), importe: 400, checks: 10, modo: 'fijo' }
 ];
 const EMOJIS_GRUPO = ['🏔️', '🍻', '🏡', '🚐', '⚽', '🎉', '💼', '🌊'];
-const EMOJIS_PERSONA = ['🦊', '🐻', '🐨', '🐧', '🦉', '🐺', '🐰', '🦝', '🐹', '🦌', '🐱', '🐭'];
+const EMOJIS_PERSONA = ['🦊', '🐨', '🐻', '🦉', '🐺', '🐰', '🦝', '🐹', '🦌', '🐱', '🐭'];
 const METODOS_PAGO = () => [['efectivo', t('efectivo')], ['bizum', t('bizum')], ['transferencia', t('transferencia')], ['paypal', t('paypal')], ['tarjeta', t('tarjeta')]];
 
 /* ---------- estado de la interfaz ---------- */
@@ -1389,14 +1389,14 @@ function sheetEditarPareja() {
       <label for="edit-nombre-a">${t('persona1')}</label>
       <input id="edit-nombre-a" type="text" maxlength="20" value="${esc(pa.nombre)}">
       <div class="emojis" data-para="emoji-a">
-        ${EMOJIS_PERSONA.slice(0, 6).map(e => `<button type="button" class="${pa.emoji === e ? 'activo' : ''}">${e}</button>`).join('')}
+        ${EMOJIS_PERSONA.map(e => `<button type="button" class="${pa.emoji === e ? 'activo' : ''}">${e}</button>`).join('')}
       </div>
     </div>
     <div class="campo-persona coral">
       <label for="edit-nombre-b">${t('persona2')}</label>
       <input id="edit-nombre-b" type="text" maxlength="20" value="${esc(pb.nombre)}">
       <div class="emojis" data-para="emoji-b">
-        ${EMOJIS_PERSONA.slice(6).map(e => `<button type="button" class="${pb.emoji === e ? 'activo' : ''}">${e}</button>`).join('')}
+        ${EMOJIS_PERSONA.map(e => `<button type="button" class="${pb.emoji === e ? 'activo' : ''}">${e}</button>`).join('')}
       </div>
     </div>
     <p class="error-form" id="error-form" hidden></p>

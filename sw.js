@@ -1,5 +1,5 @@
 /* KOAPLIT — service worker v2 */
-const CACHE = 'koaplit-v2.1.0';
+const CACHE = 'koaplit-v2.1.1';
 const ARCHIVOS = [
   './',
   './index.html',
@@ -11,7 +11,7 @@ const ARCHIVOS = [
   './sync.js?v=201',
   './notificaciones.js?v=201',
   './ocr.js?v=201',
-  './ui.js?v=201',
+  './ui.js?v=202',
   './vendor/mqtt.min.js',
   './manifest.webmanifest',
   './icons/icon-192.png',
