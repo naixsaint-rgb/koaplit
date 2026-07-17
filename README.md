@@ -29,6 +29,20 @@ Por defecto viaja por un broker MQTT público **con el contenido cifrado de extr
 2. Abre la URL en Chrome → menú ⋮ → **"Añadir a pantalla de inicio"**.
 3. Icono en el launcher, pantalla completa, funciona sin conexión y el botón Atrás se comporta como una app nativa.
 
+## Instalar en iPhone
+
+Safari no tiene botón de "instalar" — el camino es manual, siempre:
+
+1. Abre la URL en **Safari** (tiene que ser Safari, no Chrome/Firefox — en iOS todos los navegadores usan el motor de Safari por debajo, pero solo Safari expone "Añadir a pantalla de inicio").
+2. Botón compartir (el cuadrado con la flecha hacia arriba) → **"Añadir a pantalla de inicio"**.
+3. Queda como una app normal: icono propio, pantalla completa, sin la barra de Safari.
+
+**Diferencias reales con Android** (limitaciones de iOS, no de la app):
+- Los **avisos del sistema** (🔔 en Ajustes) solo funcionan en iOS 16.4 o más reciente, y **solo si ya la has añadido a la pantalla de inicio** — en una pestaña normal de Safari, iOS ni siquiera ofrece la opción de activarlos. El toast dentro de la app y el banner de "Novedades" al reabrir sí funcionan siempre, en cualquier versión.
+- No hay vibración al hacer check-in o guardar (Apple nunca ha implementado esa API en Safari) — la app lo detecta sola y no falla, simplemente no vibra.
+- Con el tema **Minimal pastel** (el único claro) la hora y la batería de arriba pueden verse con poco contraste sobre el header — es una limitación de cómo iOS pinta la barra de estado en apps instaladas, no hay forma de arreglarlo sin sacrificar la pantalla completa en el resto de temas.
+- Cada persona instala la app en su propio iPhone/Android indistintamente — la sincronización por código de sala funciona igual entre cualquier combinación de plataformas.
+
 ## Desarrollo
 
 ```bash
