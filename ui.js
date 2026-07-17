@@ -272,6 +272,19 @@ function vInicio() {
       <div class="stat oro"><div class="stat-etq">${t('rachaRetos')}</div><div class="stat-num">${racha} ${racha === 1 ? t('dia') : t('dias')}</div></div>
     </div>`;
 
+  const pendientesLista = pendientesCompra('pareja');
+  h += `<div class="fila-accesos">
+    <button type="button" class="acceso-rapido" data-action="abrir-lista-compra">
+      <span class="acceso-icono">🛒</span>
+      <span class="acceso-texto">Lista de la compra</span>
+      ${pendientesLista ? `<span class="acceso-badge">${pendientesLista}</span>` : ''}
+    </button>
+    <button type="button" class="acceso-rapido" data-action="abrir-resumen-ano">
+      <span class="acceso-icono">🎁</span>
+      <span class="acceso-texto">Resumen del año</span>
+    </button>
+  </div>`;
+
   h += `<div class="subtitulo">${t('metasEnMarcha')}</div>`;
   if (metasActivas.length) h += metasActivas.map(htmlCartaMeta).join('');
   else if (estado.objetivos.length) h += `<div class="vacio"><span class="vacio-emoji">🏆</span><p>${t('todoConseguido')}</p>
@@ -935,6 +948,116 @@ function sheetRecurrentes() {
         <button class="btn-suave" data-action="alternar-recurrente" data-id="${r.id}">${r.activo ? t('pausar') : t('reanudar')}</button>
         <button class="btn-icono" data-action="eliminar-recurrente" data-id="${r.id}" aria-label="🗑">🗑️</button>
       </div>`).join('')}
+  `);
+}
+
+/* ---------- hoja: lista de la compra ---------- */
+function sheetListaCompra(grupoId) {
+  const gid = grupoId || 'pareja';
+  tmp.compraGrupoId = gid;
+  tmp.compraCategoria = tmp.compraCategoria || '🛒';
+  const lista = listaCompraDe(gid);
+  const pendientes = lista.filter(it => !it.hecho).sort((a, b) => a.mod.localeCompare(b.mod));
+  const comprados = lista.filter(it => it.hecho).sort((a, b) => b.mod.localeCompare(a.mod));
+  abrirSheet(`
+    <h3 class="sheet-titulo">🛒 Lista de la compra
+      <button class="btn-icono" data-action="cerrar-sheet" aria-label="✕">✕</button>
+    </h3>
+    <div class="campo-compra">
+      <input id="texto-item-compra" type="text" maxlength="60" placeholder="Leche, papel higiénico, café…" autocomplete="off">
+      <button class="btn-principal" style="padding:11px 16px" data-action="anadir-item-compra">＋</button>
+    </div>
+    <div class="chips" id="chips-cat-compra" style="margin-bottom:14px">
+      ${CATEGORIAS.map(c => `<button type="button" data-action="elegir-cat-compra" data-valor="${c[0]}" class="${c[0] === tmp.compraCategoria ? 'activo' : ''}">${c[0]} ${t(c[1])}</button>`).join('')}
+    </div>
+    ${!pendientes.length && !comprados.length ? `<div class="vacio"><span class="vacio-emoji">🛒</span><p>Aún no hay nada en la lista. Añadid lo primero que os haga falta.</p></div>` : ''}
+    ${pendientes.length ? pendientes.map(it => `
+      <div class="item-linea item-compra" role="button" tabindex="0" data-action="marcar-item-compra" data-id="${it.id}">
+        <span class="check-compra" aria-hidden="true"></span>
+        <span class="item-icono">${it.categoria}</span>
+        <span class="item-cuerpo">
+          <span class="item-titulo">${esc(it.texto)}</span>
+          <span class="item-sub">Añadió ${esc(nombre(it.creadoPor))}</span>
+        </span>
+        <button class="btn-icono" data-action="eliminar-item-compra" data-id="${it.id}" aria-label="Eliminar">✕</button>
+      </div>`).join('') : ''}
+    ${comprados.length ? `<div class="subtitulo">Comprado ✓</div>` + comprados.map(it => `
+      <div class="item-linea item-compra hecho" role="button" tabindex="0" data-action="marcar-item-compra" data-id="${it.id}">
+        <span class="check-compra marcado" aria-hidden="true">✓</span>
+        <span class="item-icono">${it.categoria}</span>
+        <span class="item-cuerpo">
+          <span class="item-titulo tachado">${esc(it.texto)}</span>
+          <span class="item-sub">${it.hechoPor ? 'Compró ' + esc(nombre(it.hechoPor)) : ''}</span>
+        </span>
+        <button class="btn-icono" data-action="eliminar-item-compra" data-id="${it.id}" aria-label="Eliminar">✕</button>
+      </div>`).join('') : ''}
+    ${comprados.length ? `<button class="btn-suave btn-bloque" style="margin-top:14px" data-action="limpiar-comprados">🗑️ Vaciar comprados</button>` : ''}
+  `);
+  setTimeout(() => { const el = $('#texto-item-compra'); if (el) el.focus(); }, 350);
+}
+
+function anadirItemCompra() {
+  const inp = $('#texto-item-compra');
+  const texto = inp ? inp.value.trim() : '';
+  if (!texto) return;
+  estado.listaCompra.push({
+    id: uid(), grupoId: tmp.compraGrupoId, texto: texto.slice(0, 60), categoria: tmp.compraCategoria,
+    hecho: false, creadoPor: disp.yo, hechoPor: null, mod: ahora()
+  });
+  guardar(); vibrar(10);
+  sheetListaCompra(tmp.compraGrupoId);
+  render();
+}
+
+/* ---------- hoja: resumen del año ---------- */
+function sheetResumenAno(grupoId) {
+  const gr = grupo(grupoId || grupoActivo) || grupoPareja();
+  const tot = totalesGrupo(gr.id);
+  const gastosAno = gastosDe(gr.id).filter(g => g.fecha.slice(0, 4) === tot.anoActual);
+  const catTop = Object.entries(tot.porCategoria).sort((a, b) => b[1] - a[1])[0];
+  const porMesAno = {};
+  for (const g of gastosAno) porMesAno[g.fecha.slice(0, 7)] = (porMesAno[g.fecha.slice(0, 7)] || 0) + g.importe;
+  const mesesOrdenados = Object.entries(porMesAno).sort((a, b) => b[1] - a[1]);
+  const mesTop = mesesOrdenados[0];
+  const metasLogradasAno = estado.objetivos.filter(o => o.completadoEl && o.completadoEl.slice(0, 4) === tot.anoActual);
+  const retosCompletadosAno = estado.retos.filter(r => r.estado === 'completado' && r.finalizadoEl && r.finalizadoEl.slice(0, 4) === tot.anoActual);
+  const racha = rachaDias();
+  const ahorroTotalAno = metasLogradasAno.reduce((s, o) => s + aportadoMeta(o), 0) + retosCompletadosAno.reduce((s, r) => s + ahorroReto(r), 0);
+
+  abrirSheet(`
+    <h3 class="sheet-titulo">🎁 Vuestro ${tot.anoActual}
+      <button class="btn-icono" data-action="cerrar-sheet" aria-label="✕">✕</button>
+    </h3>
+    <div class="carta resumen-hero">
+      <div class="resumen-hero-etq">Habéis gastado juntos</div>
+      <div class="resumen-hero-cifra">${fmtMon(tot.totalAnual, gr.moneda)}</div>
+      <div class="resumen-hero-sub">en ${esc(nombreGrupo(gr))} durante ${tot.anoActual}</div>
+    </div>
+    <div class="fila-stats" style="margin:12px 0">
+      <div class="stat menta"><div class="stat-etq">🏆 Metas logradas</div><div class="stat-num">${metasLogradasAno.length}</div></div>
+      <div class="stat oro"><div class="stat-etq">🔥 Racha actual</div><div class="stat-num">${racha} ${racha === 1 ? 'día' : 'días'}</div></div>
+    </div>
+    ${catTop ? `<div class="carta" style="display:flex;align-items:center;gap:12px;padding:14px 16px">
+      <span style="font-size:26px">${catTop[0]}</span>
+      <div style="flex:1"><div style="font-size:12px;color:var(--bruma)">Vuestra categoría estrella</div>
+        <div style="font-weight:700">${nombreCategoria(catTop[0])} · ${fmtMon(catTop[1], gr.moneda)}</div></div>
+    </div>` : ''}
+    ${mesTop ? `<div class="carta" style="display:flex;align-items:center;gap:12px;padding:14px 16px;margin-top:10px">
+      <span style="font-size:26px">📅</span>
+      <div style="flex:1"><div style="font-size:12px;color:var(--bruma)">El mes que más gastasteis</div>
+        <div style="font-weight:700">${mesBonito(mesTop[0])} · ${fmtMon(mesTop[1], gr.moneda)}</div></div>
+    </div>` : ''}
+    ${ahorroTotalAno > 0 ? `<div class="carta" style="display:flex;align-items:center;gap:12px;padding:14px 16px;margin-top:10px">
+      <span style="font-size:26px">💰</span>
+      <div style="flex:1"><div style="font-size:12px;color:var(--bruma)">Ahorrado en metas y retos completados</div>
+        <div style="font-weight:700 tinta-menta">${fmt(ahorroTotalAno)}</div></div>
+    </div>` : ''}
+    <div class="carta" style="display:flex;align-items:center;gap:12px;padding:14px 16px;margin-top:10px">
+      <span style="font-size:26px">🧾</span>
+      <div style="flex:1"><div style="font-size:12px;color:var(--bruma)">Gastos anotados este año</div>
+        <div style="font-weight:700">${gastosAno.length}</div></div>
+    </div>
+    <p style="text-align:center;color:var(--bruma);font-size:12.5px;margin-top:16px">Se mantiene aunque saldéis las cuentas — nada se borra nunca. 🐨</p>
   `);
 }
 
@@ -1633,6 +1756,41 @@ const acciones = {
   'elegir-csv-pagador': b => { tmp.pagadoPor = b.dataset.valor; marcarActivo(b); },
   'importar-csv-confirmar': () => importarCSVConfirmar(),
 
+  // lista de la compra
+  'abrir-lista-compra': () => sheetListaCompra('pareja'),
+  'anadir-item-compra': () => anadirItemCompra(),
+  'elegir-cat-compra': b => { tmp.compraCategoria = b.dataset.valor; marcarActivo(b); },
+  'marcar-item-compra': b => {
+    const it = estado.listaCompra.find(x => x.id === b.dataset.id);
+    if (!it) return;
+    it.hecho = !it.hecho;
+    it.hechoPor = it.hecho ? disp.yo : null;
+    it.mod = ahora();
+    guardar(); vibrar(10);
+    sheetListaCompra(tmp.compraGrupoId);
+    render();
+  },
+  'eliminar-item-compra': b => {
+    const id = b.dataset.id;
+    estado.listaCompra = estado.listaCompra.filter(x => x.id !== id);
+    marcarBorrado(id);
+    guardar();
+    sheetListaCompra(tmp.compraGrupoId);
+    render();
+  },
+  'limpiar-comprados': () => {
+    const idsFuera = estado.listaCompra.filter(it => it.grupoId === tmp.compraGrupoId && it.hecho).map(it => it.id);
+    estado.listaCompra = estado.listaCompra.filter(it => !idsFuera.includes(it.id));
+    idsFuera.forEach(marcarBorrado);
+    guardar();
+    sheetListaCompra(tmp.compraGrupoId);
+    render();
+    toast('Comprados eliminados 🗑️');
+  },
+
+  // resumen del año
+  'abrir-resumen-ano': () => sheetResumenAno('pareja'),
+
   // portada de mes
   'subir-portada-mes': b => {
     tmp.portadaGrupoId = b.dataset.grupo;
@@ -1799,6 +1957,7 @@ document.addEventListener('click', e => {
 // accesibilidad: Enter/Espacio sobre tarjetas con role=button
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { cerrarSheet(); return; }
+  if (e.key === 'Enter' && e.target.id === 'texto-item-compra') { e.preventDefault(); anadirItemCompra(); return; }
   if ((e.key === 'Enter' || e.key === ' ') && e.target.getAttribute && e.target.getAttribute('role') === 'button') {
     e.preventDefault();
     const fn = acciones[e.target.dataset.action];

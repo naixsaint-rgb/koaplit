@@ -36,6 +36,9 @@
     const gr = grupo(gid);
     return { tipo: 'portada', texto: `${emojiDe(v.subidoPor)} ${esc(nombre(v.subidoPor))} puso una foto en ${mesBonito(ym)}${gr && gr.id !== 'pareja' ? ' · ' + esc(nombreGrupo(gr)) : ''}` };
   }
+  function eventoItemCompra(it) {
+    return { tipo: 'compra', texto: `${it.categoria} ${esc(nombre(it.creadoPor))} añadió «${esc(it.texto)}» a la lista` };
+  }
 
   /* pura: no toca `estado` ni el DOM, solo compara tres snapshots */
   function detectarEventos(antes, fusionado, remoto) {
@@ -89,6 +92,12 @@
     const clavesRemoto = new Set(Object.keys(remoto.portadasMes || {}));
     for (const [clave, v] of Object.entries(fusionado.portadasMes || {})) {
       if (!clavesAntes.has(clave) && clavesRemoto.has(clave)) eventos.push(eventoPortada(clave, v));
+    }
+
+    const idsAntesLC = new Set((antes.listaCompra || []).map(it => it.id));
+    const idsRemotoLC = new Set((remoto.listaCompra || []).map(it => it.id));
+    for (const it of fusionado.listaCompra || []) {
+      if (!idsAntesLC.has(it.id) && idsRemotoLC.has(it.id)) eventos.push(eventoItemCompra(it));
     }
 
     return eventos.slice(0, 20);

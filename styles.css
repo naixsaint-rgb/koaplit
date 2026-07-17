@@ -543,6 +543,50 @@ h1, h2, h3 { font-family: var(--fuente-titulo); font-weight: 700; letter-spacing
 .banner-novedades-lista { padding: 0 16px 14px; display: flex; flex-direction: column; gap: 7px; }
 .banner-novedad-item { font-size: 13px; color: var(--bruma); padding: 8px 12px; background: var(--noche-2); border-radius: 10px; }
 
+/* ---------- v2: accesos rápidos (inicio) ---------- */
+.fila-accesos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.acceso-rapido {
+  display: flex; align-items: center; gap: 9px; padding: 13px 14px;
+  background: var(--carta); border: 1px solid var(--linea); border-radius: var(--radio);
+  position: relative; text-align: left;
+  transition: transform .15s;
+}
+.acceso-rapido:active { transform: scale(.96); }
+.acceso-icono { font-size: 20px; flex: none; }
+.acceso-texto { font-size: 13.5px; font-weight: 600; line-height: 1.25; }
+.acceso-badge {
+  position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px;
+  border-radius: 99px; background: var(--coral); color: #3A150C;
+  font-size: 11px; font-weight: 700; display: grid; place-items: center;
+}
+
+/* ---------- v2: lista de la compra ---------- */
+.campo-compra { display: flex; gap: 8px; margin-bottom: 12px; }
+.campo-compra input {
+  flex: 1; background: var(--carta); border: 1px solid var(--linea);
+  border-radius: var(--radio-s); padding: 12px 14px; font-size: 15px; outline: none;
+}
+.campo-compra input:focus { border-color: var(--menta); }
+.item-compra { gap: 10px; }
+.check-compra {
+  width: 22px; height: 22px; flex: none; border-radius: 8px;
+  border: 2px solid var(--linea); background: var(--noche-2);
+  display: grid; place-items: center; font-size: 13px; color: var(--noche);
+}
+.check-compra.marcado { background: var(--menta); border-color: var(--menta); }
+.item-compra.hecho { opacity: .6; }
+.tachado { text-decoration: line-through; }
+
+/* ---------- v2: resumen del año ---------- */
+.resumen-hero {
+  text-align: center; padding: 26px 18px;
+  background: linear-gradient(135deg, rgba(255, 211, 122, .14), rgba(255, 154, 123, .10));
+  border-color: rgba(255, 211, 122, .3);
+}
+.resumen-hero-etq { font-size: 13px; color: var(--bruma); }
+.resumen-hero-cifra { font-family: var(--fuente-titulo); font-weight: 900; font-size: 36px; margin: 6px 0 2px; color: var(--oro); }
+.resumen-hero-sub { font-size: 13px; color: var(--bruma); }
+
 /* ---------- v2: portada de mes ---------- */
 .portada-mes {
   position: relative; height: 108px; margin-bottom: 10px; border-radius: var(--radio);

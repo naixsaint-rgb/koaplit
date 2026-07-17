@@ -1,17 +1,17 @@
 /* KOAPLIT — service worker v2 */
-const CACHE = 'koaplit-v2.1.1';
+const CACHE = 'koaplit-v2.2.0';
 const ARCHIVOS = [
   './',
   './index.html',
-  './styles.css?v=201',
+  './styles.css?v=203',
   './fonts.css?v=200',
   './i18n.js?v=201',
-  './nucleo.js?v=201',
+  './nucleo.js?v=203',
   './graficos.js?v=201',
-  './sync.js?v=201',
-  './notificaciones.js?v=201',
+  './sync.js?v=203',
+  './notificaciones.js?v=203',
   './ocr.js?v=201',
-  './ui.js?v=202',
+  './ui.js?v=203',
   './vendor/mqtt.min.js',
   './manifest.webmanifest',
   './icons/icon-192.png',

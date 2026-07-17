@@ -159,6 +159,7 @@ function estadoInicial() {
     objetivos: [],  // {id, nombre, emoji, meta, fechaLimite, aportes[], completadoEl, mod}
     retos: [],      // {id, nombre, emoji, importePorCheck, checksMeta, modo, checks[], objetivoId, estado, finalizadoEl, mod}
     portadasMes: {},// {"grupoId·YYYY-MM": {dataUrl, subidoPor, mod}} — foto de cabecera de cada mes
+    listaCompra: [],// {id, grupoId, texto, categoria, hecho, creadoPor, hechoPor, mod}
     borrados: {}    // {id: iso} — lápidas para sincronización
   };
 }
@@ -361,6 +362,23 @@ function sanearEstado(bruto) {
     }
   }
 
+  // lista de la compra
+  for (const it of Array.isArray(b.listaCompra) ? b.listaCompra : []) {
+    if (!it || !vId(it.id)) continue;
+    const grupo = grupoDe(it.grupoId) || e.grupos[0];
+    if (!grupo) continue;
+    const texto = sTx(it.texto, 60);
+    if (!texto) continue;
+    e.listaCompra.push({
+      id: it.id, grupoId: grupo.id, texto, categoria: sEmoji(it.categoria || '📦'),
+      hecho: it.hecho === true,
+      creadoPor: hayPersona(it.creadoPor) ? it.creadoPor : 'a',
+      hechoPor: hayPersona(it.hechoPor) ? it.hechoPor : null,
+      mod: vISO(it.mod) ? it.mod : ahora()
+    });
+    if (e.listaCompra.length >= 500) break;
+  }
+
   // lápidas
   if (b.borrados && typeof b.borrados === 'object') {
     let n = 0;
@@ -468,6 +486,8 @@ const monedaPareja = () => { const g = grupoPareja(); return g ? g.moneda : esta
 const grupo = id => estado.grupos.find(g => g.id === id);
 const gastosDe = gid => estado.gastos.filter(g => g.grupoId === gid);
 const pagosDe = gid => estado.pagos.filter(p => p.grupoId === gid);
+const listaCompraDe = gid => estado.listaCompra.filter(it => it.grupoId === gid);
+const pendientesCompra = gid => listaCompraDe(gid).filter(it => !it.hecho).length;
 
 function nombreGrupo(g) {
   if (g.id === 'pareja') return nombre('a') + ' + ' + nombre('b');

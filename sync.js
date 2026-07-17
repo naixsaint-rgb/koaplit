@@ -140,6 +140,7 @@
     res.gastos = fusionaColeccion('gastos');
     res.pagos = fusionaColeccion('pagos');
     res.recurrentes = fusionaColeccion('recurrentes');
+    res.listaCompra = fusionaColeccion('listaCompra');
     res.portadasMes = fusionaDiccionario('portadasMes');
 
     // objetivos: LWW de campos + unión de aportes por id
