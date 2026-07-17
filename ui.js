@@ -1494,7 +1494,8 @@ function sheetAjustes() {
     <div class="ajuste-fila">
       <div class="aj-texto"><b>📡 ${t('sala')}</b><span>${esc(salaTxt)}</span></div>
       ${disp.sala
-        ? `<button class="btn-suave btn-peligro" data-action="salir-sala">${t('salirSala')}</button>`
+        ? `<button class="btn-suave" data-action="sala-desde-ajustes">📤 Invitar</button>
+           <button class="btn-icono" data-action="salir-sala" aria-label="${t('salirSala')}">🚪</button>`
         : `<button class="btn-suave" data-action="sala-desde-ajustes">➕</button>`}
     </div>
     <div class="ajuste-fila">
@@ -1885,6 +1886,7 @@ const acciones = {
     });
   },
   'salir-sala': () => { window.SYNC.salirSala(); sheetAjustes(); toast(t('sinSala')); },
+  'compartir-invitacion': b => compartirInvitacion(b.dataset.codigo),
   'elegir-tema': b => {
     disp.tema = b.dataset.valor;
     guardarDisp();
@@ -1933,15 +1935,64 @@ const acciones = {
   }
 };
 
+function enlaceInvitacion(codigo) {
+  const url = new URL(location.href);
+  url.search = '';
+  url.hash = '';
+  url.searchParams.set('sala', codigo);
+  return url.toString();
+}
+
+function svgQR(texto) {
+  try {
+    const qr = window.qrcode(0, 'M');
+    qr.addData(texto);
+    qr.make();
+    return qr.createSvgTag(5, 8);
+  } catch (_) {
+    return '';
+  }
+}
+
+async function compartirInvitacion(codigo) {
+  const enlace = enlaceInvitacion(codigo);
+  const texto = `¡Te invito a KOAPLIT! 🐨 Abre este enlace, pon tu nombre y pulsa "Unirse" — el código ya viene puesto solo.\n${enlace}`;
+  if (navigator.share) {
+    try { await navigator.share({ title: 'KOAPLIT', text: texto }); } catch (_) {}
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(texto);
+    toast('Copiado — pégalo donde quieras 📋');
+  } catch (_) {
+    toast('No pude copiar. Enlace: ' + enlace);
+  }
+}
+
 function sheetSala(codigoNuevo) {
+  const codigo = codigoNuevo || disp.sala;
+  if (codigo) {
+    const qr = svgQR(enlaceInvitacion(codigo));
+    abrirSheet(`
+      <h3 class="sheet-titulo">📡 ${t('sala')}
+        <button class="btn-icono" data-action="cerrar-sheet" aria-label="✕">✕</button>
+      </h3>
+      <div class="carta" style="text-align:center;padding:22px;margin-bottom:14px">
+        <div style="font-family:var(--fuente-num);font-size:34px;letter-spacing:.3em;color:var(--menta)">${esc(codigo)}</div>
+        <p style="color:var(--bruma);font-size:13px;margin-top:8px">${codigoNuevo ? t('salaCreada', esc(codigo)) : 'Comparte esto con tu pareja para que se conecte'}</p>
+      </div>
+      <button class="btn-principal btn-bloque" data-action="compartir-invitacion" data-codigo="${esc(codigo)}">📤 Invitar a tu pareja</button>
+      ${qr ? `<div class="carta qr-carta">
+        <div class="qr-envoltorio">${qr}</div>
+        <p style="color:var(--bruma);font-size:12.5px;text-align:center;margin-top:10px">O que escaneen este código con la cámara</p>
+      </div>` : ''}
+    `);
+    return;
+  }
   abrirSheet(`
     <h3 class="sheet-titulo">📡 ${t('sala')}
       <button class="btn-icono" data-action="cerrar-sheet" aria-label="✕">✕</button>
     </h3>
-    ${codigoNuevo ? `<div class="carta" style="text-align:center;padding:22px;margin-bottom:14px">
-      <div style="font-family:var(--fuente-num);font-size:34px;letter-spacing:.3em;color:var(--menta)">${esc(codigoNuevo)}</div>
-      <p style="color:var(--bruma);font-size:13px;margin-top:8px">${t('salaCreada', esc(codigoNuevo))}</p>
-    </div>` : ''}
     <div class="campo">
       <label for="codigo-sala-sheet">${t('codigoSala')}</label>
       <input id="codigo-sala-sheet" type="text" maxlength="6" placeholder="${t('seisDigitos')}" autocomplete="off"
@@ -2139,6 +2190,13 @@ if (btnUnirse) btnUnirse.addEventListener('click', async () => {
 });
 
 /* ---------- arranque ---------- */
+const salaInvitacion = new URLSearchParams(location.search).get('sala');
+if (salaInvitacion && !hayPareja()) {
+  const inp = $('#roomCodeInput');
+  if (inp) inp.value = salaInvitacion.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+  msgPairing('👋 Te han invitado a una sala. Pon tu nombre y pulsa "Unirse".');
+}
+
 const generados = materializarRecurrentes();
 render();
 if (generados) toast(t('recurrenteGenerado', generados));
