@@ -12,6 +12,40 @@ objetivo es que humanos e inteligencias artificiales piensen mejor juntos.
 
 ---
 
+## ⏳ El traslado, a falta de un paso
+
+El Consejo ha ordenado el traslado a `naixsaint-rgb/itaca`. Está todo listo
+menos una cosa: **Hermes no puede crear el repositorio**. La App de GitHub de
+la sesión no tiene permiso de administración sobre la cuenta, así que la
+llamada de creación devuelve `403 Resource not accessible by integration`.
+
+Lo que sí está hecho y verificado:
+
+- La rama `itaca-solo` existe, con ÍTACA en la raíz y **los cuatro commits
+  reales**, no una copia aplanada.
+- Extraída en limpio, `npm ci && npm run verificar && npm run build` pasa: 37
+  archivos, 2 de 2 decisiones se sostienen, la sala compila.
+
+Falta que Odiseo cree el repositorio vacío (sin README, sin `.gitignore`) y
+elija una de las dos vías:
+
+**A — que lo termine Hermes.** Crear el repositorio y darle acceso a la App de
+Claude en <https://claude.ai/admin-settings/claude-in-slack>. Después basta con
+decírselo: hará el `push` y borrará `itaca/` del repositorio provisional.
+
+**B — hacerlo desde tu máquina.** Dos comandos, sobre un clon de `koaplit` en
+la rama `claude/consejo-itaca-onboarding-snrm6t`:
+
+```bash
+git subtree split --prefix=itaca -b itaca-solo
+git push git@github.com:naixsaint-rgb/itaca.git itaca-solo:main
+```
+
+Hasta que el traslado se confirme, **no se borra `itaca/` de esta rama**: sería
+quedarse sin la única copia. Y sigue sin fusionarse a `master`.
+
+---
+
 ## Arrancar
 
 ```bash
