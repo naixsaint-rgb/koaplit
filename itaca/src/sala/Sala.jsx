@@ -93,13 +93,8 @@ export function Sala({ decision }) {
           ))}
 
           <p className="teclas">
-            <span>
-              <kbd>←</kbd>
-              <kbd>→</kbd> girar
-            </span>
-            <span>
-              <kbd>Esc</kbd> volver
-            </span>
+            <kbd>←</kbd>
+            <kbd>→</kbd> girar · <kbd>Esc</kbd> volver
           </p>
         </div>
       </div>

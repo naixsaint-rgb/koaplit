@@ -11,13 +11,17 @@
  */
 
 /** Donde el muro se encuentra con el suelo. Por encima, la sala; por debajo, el suelo. */
-export const HORIZONTE = 470;
+export const HORIZONTE = 520;
 
-/** La mesa. Vista desde algo por encima del ojo, para que se vea la superficie. */
-export const MESA = { x: 960, y: 800, rx: 660, ry: 265 };
+/**
+ * La mesa. Monumental: 1400 unidades de ancho, un tercio del alto de la sala.
+ * Vista desde algo por encima del ojo, para que la superficie sea un lugar
+ * donde apoyar un documento y no un canto visto de perfil.
+ */
+export const MESA = { x: 960, y: 820, rx: 700, ry: 250 };
 
 /** El anillo de sillas, por fuera del canto de la mesa. */
-const SILLAS = { rx: 700, ry: 310 };
+const SILLAS = { rx: 700, ry: 300 };
 
 /**
  * Ángulo de cada silla, en grados. -90 es la cabecera del fondo.
@@ -58,7 +62,7 @@ export function asiento(id) {
  * un rótulo ilegible, y aquí la legibilidad manda sobre la composición.
  */
 export const FICHA = {
-  odiseo: { x: 960, y: 336, anclaje: 'centro' },
+  odiseo: { x: 960, y: 392, anclaje: 'centro' },
   atenea: { x: 315, y: 574, anclaje: 'derecha' },
   hermes: { x: 1610, y: 574, anclaje: 'izquierda' },
   mnemosine: { x: 285, y: 902, anclaje: 'derecha' },
@@ -73,4 +77,4 @@ export const FICHA = {
  * mesa. Si se agranda, el documento sobresale por el canto y deja de estar
  * apoyado en algo.
  */
-export const PLIEGO = { x: 960, y: 786, ancho: 700, alto: 402, inclinacion: 22, fuga: 1700 };
+export const PLIEGO = { x: 960, y: 800, ancho: 780, alto: 396, inclinacion: 22, fuga: 1700 };

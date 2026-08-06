@@ -100,10 +100,23 @@ sabremos que la decisión que protegen sigue viva.
 
 ## La Sala del Consejo
 
-Una villa mediterránea a mediodía. La luz entra por la arcada de la izquierda,
-cruza el suelo y se apaga a la derecha: **hay una sola dirección de luz** y
-todos los degradados del proyecto la obedecen. En cuanto haya una segunda, la
-sala volverá a sentirse interior y cerrada.
+Una villa mediterránea a mediodía: artesonado de nogal, columnata toscana
+abierta al mar, muro de caliza, hornacina con escultura, travertino pulido y
+una mesa de mármol de 1400 unidades de ancho.
+
+La luz entra por la columnata de la izquierda, cruza el suelo y se apaga a la
+derecha: **hay una sola dirección de luz** y todos los degradados del proyecto
+la obedecen. En cuanto haya una segunda, la sala volverá a sentirse interior y
+cerrada.
+
+Tres cosas hacen que se lea como arquitectura y no como ilustración, y ninguna
+es el color: **rango tonal** (el nogal del techo es el ancla oscura — sin algo
+profundo arriba, lo claro de abajo no se lee como luz), **fuga única** (techo,
+suelo y sombras convergen en el mismo punto) y **reflejos** (una superficie que
+no devuelve nada no es piedra, es relleno).
+
+**Sin iconos.** Ni emoji ni pictogramas: un filete de bronce y el nombre en
+Cormorant dicen lo mismo sin sacar a nadie de la villa.
 
 **Al muro sube el título de la decisión; el documento vivo se queda sobre la
 mesa.** La mesa no representa una decisión: es donde la decisión ocurre. La

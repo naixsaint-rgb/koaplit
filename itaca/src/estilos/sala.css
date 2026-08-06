@@ -18,18 +18,24 @@
    */
   --u: min(calc(100vw / 1920), calc(100vh / 1080));
 
-  /* Mediterráneo a mediodía. Ningún gris neutro: todo tiene temperatura. */
-  --cal: #f7f2e7;
-  --travertino: #ece2ce;
-  --piedra-sombra: #d4c5a8;
-  --marmol: #f2ebdb;
+  /*
+   * Mediterráneo a mediodía. Ningún gris neutro: todo tiene temperatura.
+   * El nogal del artesonado no es adorno: es el ancla oscura de la paleta.
+   * Sin un valor profundo arriba, lo claro de abajo no se lee como luz.
+   */
+  --cal: #f4ecdd;
+  --travertino: #e4d8c0;
+  --piedra-sombra: #c9b99b;
+  --marmol: #f4ecda;
+  --nogal: #2e2013;
+  --nogal-luz: #e9dcc1;
 
-  --tinta: #33291c;
-  --tinta-suave: #6f6252;
-  --tinta-tenue: #9a8c77;
+  --tinta: #2f2519;
+  --tinta-suave: #6b5e4c;
+  --tinta-tenue: #968873;
 
-  --bronce: #9c7940;
-  --olivo: #617051;
+  --bronce: #9a7b46;
+  --olivo: #6b7a5c;
 
   --serif: 'Cormorant Garamond', 'Palatino Linotype', Palatino, Georgia, serif;
   --sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -119,7 +125,8 @@ body {
   font-family: var(--serif);
   font-size: calc(25 * var(--u));
   letter-spacing: calc(7 * var(--u));
-  color: var(--tinta-suave);
+  /* la cabecera cae sobre el nogal del artesonado: se graba en claro */
+  color: var(--nogal-luz);
 }
 
 .sello {
@@ -127,7 +134,7 @@ body {
   font-size: calc(12.5 * var(--u));
   letter-spacing: calc(2.6 * var(--u));
   text-transform: uppercase;
-  color: var(--tinta-tenue);
+  color: rgba(233, 220, 193, 0.62);
 }
 
 /* ───────────────────────── el muro ─────────────────────────
@@ -137,10 +144,10 @@ body {
 
 .muro {
   position: absolute;
-  top: calc(112 * var(--u));
+  top: calc(186 * var(--u));
   left: 50%;
   transform: translateX(-50%);
-  width: calc(780 * var(--u));
+  width: calc(800 * var(--u));
   text-align: center;
 }
 
@@ -153,10 +160,10 @@ body {
 }
 
 .muro h1 {
-  margin: 0 0 calc(24 * var(--u));
+  margin: 0 0 calc(20 * var(--u));
   font-family: var(--serif);
   font-weight: 400;
-  font-size: calc(58 * var(--u));
+  font-size: calc(54 * var(--u));
   line-height: 1.1;
   letter-spacing: calc(-0.4 * var(--u));
   text-wrap: balance;
@@ -224,8 +231,9 @@ body {
   /* papel de hilo sobre mármol: casi el mismo tono, distinta materia */
   background: linear-gradient(168deg, #fdfaf2 0%, #f7f1e3 62%, #efe6d3 100%);
   box-shadow:
-    0 calc(2 * var(--u)) calc(3 * var(--u)) rgba(120, 100, 66, 0.16),
-    0 calc(14 * var(--u)) calc(30 * var(--u)) rgba(120, 100, 66, 0.14);
+    0 calc(1 * var(--u)) calc(2 * var(--u)) rgba(96, 78, 48, 0.22),
+    0 calc(10 * var(--u)) calc(26 * var(--u)) rgba(96, 78, 48, 0.16),
+    0 calc(30 * var(--u)) calc(60 * var(--u)) rgba(96, 78, 48, 0.1);
 }
 
 .pliego .pregunta {
@@ -336,28 +344,25 @@ body {
 
 .ficha[data-elegida='si'] { background: rgba(156, 121, 64, 0.12); }
 
-.ficha .glifo {
+.ficha .filete {
   flex: none;
-  display: grid;
-  place-items: center;
-  width: calc(46 * var(--u));
-  height: calc(46 * var(--u));
-  border-radius: 50%;
-  border: 1px solid rgba(156, 121, 64, 0.45);
-  background: rgba(255, 253, 246, 0.55);
-  font-size: calc(19 * var(--u));
-  line-height: 1;
-  transition: box-shadow var(--transicion), border-color var(--transicion);
+  width: calc(2 * var(--u));
+  height: calc(52 * var(--u));
+  margin-top: calc(4 * var(--u));
+  background: var(--bronce);
+  opacity: 0.55;
+  transition: opacity var(--transicion), box-shadow var(--transicion);
 }
 
-.ficha[data-elegida='si'] .glifo {
-  border-color: var(--bronce);
-  box-shadow: 0 0 0 calc(4 * var(--u)) rgba(156, 121, 64, 0.16);
+.ficha[data-elegida='si'] .filete {
+  opacity: 1;
+  box-shadow: 0 0 calc(10 * var(--u)) rgba(154, 123, 70, 0.6);
 }
 
-.ficha[data-presente='no'] .glifo {
-  border-style: dashed;
+.ficha[data-presente='no'] .filete {
   background: none;
+  border-left: calc(2 * var(--u)) dashed var(--bronce);
+  opacity: 0.4;
 }
 
 .ficha .texto {
@@ -401,6 +406,8 @@ body {
 .ficha[data-anclaje='centro'] .rol,
 .ficha[data-anclaje='centro'] .postura { margin-top: 0; }
 
+.ficha[data-anclaje='centro'] .filete { height: calc(30 * var(--u)); margin-top: 0; }
+
 .ficha[data-contra='si'] .postura { color: #a8552f; }
 
 .ficha[data-presente='no'] .nombre,
@@ -415,12 +422,12 @@ body {
 
 .teclas {
   position: absolute;
-  left: calc(70 * var(--u));
-  bottom: calc(36 * var(--u));
+  left: calc(66 * var(--u));
+  bottom: calc(28 * var(--u));
   display: flex;
-  gap: calc(18 * var(--u));
+  gap: calc(14 * var(--u));
   margin: 0;
-  font-size: calc(11.5 * var(--u));
+  font-size: calc(10.5 * var(--u));
   letter-spacing: calc(1.2 * var(--u));
   color: var(--tinta-tenue);
 }
@@ -439,13 +446,13 @@ body {
  */
 
 .escenografia [filter='url(#aire)'] {
-  animation: respirar 34s ease-in-out infinite;
+  animation: respirar 38s ease-in-out infinite;
 }
 
 @keyframes respirar {
   0%,
-  100% { opacity: 0.52; }
-  50% { opacity: 0.72; }
+  100% { opacity: 0.42; }
+  50% { opacity: 0.58; }
 }
 
 @media (prefers-reduced-motion: reduce) {

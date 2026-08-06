@@ -37,9 +37,13 @@ export function Ficha({ miembro, posicion, elegida, onElegir }) {
       aria-pressed={elegida}
       onClick={() => onElegir(miembro.id)}
     >
-      <span className="glifo" aria-hidden="true">
-        {miembro.presente ? miembro.glifo : ''}
-      </span>
+      {/*
+        Sin emoji. Eran lo más de aplicación que le quedaba a la sala, y el
+        Consejo lo pidió explícitamente: nada de iconos modernos. Un filete de
+        bronce y el nombre en Cormorant dicen lo mismo sin sacar a nadie de la
+        villa. La silla vacía se distingue por el filete hueco.
+      */}
+      <span className="filete" aria-hidden="true" />
       <span className="texto">
         <span className="nombre">{miembro.nombre}</span>
         <span className="rol">{miembro.rol}</span>
