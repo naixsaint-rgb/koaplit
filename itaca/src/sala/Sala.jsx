@@ -1,23 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
 import { MIEMBROS } from '../dominio/consejo.js';
-import { posicionDe } from '../dominio/decision.js';
+import { CICLO, ETIQUETA_ESTADO, posicionDe } from '../dominio/decision.js';
 import { Escenografia } from './Escenografia.jsx';
+import { Ficha } from './Ficha.jsx';
 import { Mesa } from './Mesa.jsx';
-import { Silla } from './Silla.jsx';
-import { Voz } from './Voz.jsx';
+import { Pliego } from './Pliego.jsx';
+import { Sillas } from './Sillas.jsx';
 
 export function Sala({ decision }) {
   const [elegido, setElegido] = useState(null);
+  const actual = CICLO.indexOf(decision.estado);
 
-  /*
-   * Ergonomía: la sala se recorre entera con el teclado sin tabular por
-   * cinco botones. ← → giran alrededor de la mesa, 1-5 sientan directamente,
-   * Esc devuelve la vista a la resolución.
-   */
   const girar = useCallback((paso) => {
-    setElegido((actual) => {
-      if (!actual) return MIEMBROS[paso > 0 ? 0 : MIEMBROS.length - 1].id;
-      const i = MIEMBROS.findIndex((m) => m.id === actual);
+    setElegido((a) => {
+      if (!a) return MIEMBROS[paso > 0 ? 0 : MIEMBROS.length - 1].id;
+      const i = MIEMBROS.findIndex((m) => m.id === a);
       return MIEMBROS[(i + paso + MIEMBROS.length) % MIEMBROS.length].id;
     });
   }, []);
@@ -41,47 +38,71 @@ export function Sala({ decision }) {
     return () => window.removeEventListener('keydown', alPulsar);
   }, [girar]);
 
+  /*
+   * El orden de estas capas ES la profundidad de la sala. Cambiarlo la aplana:
+   * villa → sillas del fondo → mesa → pliego sobre el mármol → sillas de
+   * primer término → fichas.
+   */
   return (
     <main className="sala">
-      <Escenografia />
+      {/*
+       * Todo vive dentro de un lienzo de 1920×1080 escalado y centrado. Los SVG
+       * y el texto comparten así el mismo origen de coordenadas: si cada capa
+       * se centrara por su cuenta, en cuanto la pantalla dejara de ser 16:9 el
+       * pliego se despegaría de la mesa.
+       */}
+      <div className="lienzo">
+        <Escenografia />
+        <Sillas plano="fondo" elegido={elegido} />
+        <Mesa />
+        <Pliego decision={decision} elegido={elegido} />
+        <Sillas plano="frente" elegido={elegido} />
 
-      <header className="cabecera">
-        <p className="marca">
-          ÍTACA<span> · </span>SALA DEL CONSEJO
-        </p>
-        <p className="sello">
-          <span className="id">{decision.id}</span>
-          <span>{decision.fecha}</span>
-        </p>
-      </header>
+        <div className="capa rotulos">
+          <header className="cabecera">
+            <p className="marca">ÍTACA</p>
+            <p className="sello">Sala del Consejo</p>
+          </header>
 
-      <div className="escena">
-        <Mesa decision={decision} />
-        {MIEMBROS.map((m) => (
-          <Silla
-            key={m.id}
-            miembro={m}
-            posicion={posicionDe(decision, m.id)}
-            elegida={elegido === m.id}
-            onElegir={(id) => setElegido((a) => (a === id ? null : id))}
-          />
-        ))}
+          {/* al muro sube solo la identidad de la decisión; el trabajo se queda en la mesa */}
+          <div className="muro">
+            <p className="eyebrow">Decisión fundacional · {decision.id}</p>
+            <h1>{decision.titulo}</h1>
+            <ol className="ciclo" aria-label="Ciclo de vida de la decisión">
+              {CICLO.map((estado, i) => (
+                <li
+                  key={estado}
+                  data-alcanzado={i <= actual ? 'si' : 'no'}
+                  data-actual={i === actual ? 'si' : 'no'}
+                  aria-current={i === actual ? 'step' : undefined}
+                >
+                  {ETIQUETA_ESTADO[estado]}
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          {MIEMBROS.map((m) => (
+            <Ficha
+              key={m.id}
+              miembro={m}
+              posicion={posicionDe(decision, m.id)}
+              elegida={elegido === m.id}
+              onElegir={(id) => setElegido((a) => (a === id ? null : id))}
+            />
+          ))}
+
+          <p className="teclas">
+            <span>
+              <kbd>←</kbd>
+              <kbd>→</kbd> girar
+            </span>
+            <span>
+              <kbd>Esc</kbd> volver
+            </span>
+          </p>
+        </div>
       </div>
-
-      <p className="teclas">
-        <span>
-          <kbd>←</kbd>
-          <kbd>→</kbd> girar
-        </span>
-        <span>
-          <kbd>1</kbd>–<kbd>5</kbd> sentarse
-        </span>
-        <span>
-          <kbd>Esc</kbd> resolución
-        </span>
-      </p>
-
-      <Voz decision={decision} elegido={elegido} />
     </main>
   );
 }

@@ -55,15 +55,8 @@ export const MIEMBROS = [
 
 export const miembro = (id) => MIEMBROS.find((m) => m.id === id) ?? null;
 
-/**
- * Posición de cada silla alrededor de la mesa, en grados.
- * -90 es la cabecera. El reparto deja libre el sur (donde se lee la voz
- * seleccionada) y sienta a Sócrates enfrente de Odiseo, no a su lado.
+/*
+ * Aquí vivía ANGULO_SILLA. Se ha movido a `src/sala/geometria.js`: dónde se
+ * sienta cada miembro es una decisión de la vista, no una propiedad del
+ * Consejo. El dominio no debe saber que existen las sillas.
  */
-export const ANGULO_SILLA = {
-  odiseo: -90,
-  hermes: -20,
-  socrates: 40,
-  mnemosine: 140,
-  atenea: -160,
-};

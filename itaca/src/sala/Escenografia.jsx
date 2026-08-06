@@ -1,163 +1,190 @@
+import { HORIZONTE } from './geometria.js';
+
 /**
- * La villa.
+ * LA VILLA.
  *
- * Todo dibujado en SVG: cero imágenes, cero fuentes externas, cero KB de red.
- * La alternativa (fotografías de escultura clásica) traía licencias que revisar,
- * varios MB por pantalla y, sobre todo, un realismo que empuja la sala hacia el
- * videojuego. Aquí las esculturas son sombra y volumen: atmósfera, no ilustración.
+ * Lo que abrió la sala no fue aclarar la paleta: fue darle un exterior. La luz
+ * entra por la arcada de la izquierda, cruza el suelo y se apaga a la derecha.
+ * Toda la iluminación de la sala —los degradados del muro, el derrame sobre el
+ * suelo, el brillo del mármol— obedece a esa única dirección. Dos fuentes de
+ * luz habrían devuelto la sensación de interior cerrado.
  *
- * Nada de esto es interactivo ni accesible al lector de pantalla — es el muro.
+ * Todo es SVG dibujado a mano: cero imágenes, cero peticiones de red. Perseguir
+ * el fotorrealismo de las referencias con trazados a mano llevaría a lo
+ * *uncanny* —casi real y por eso peor—, así que esto es luz y geometría
+ * arquitectónicas, no fotografía.
+ *
+ * Nada de aquí es interactivo ni accesible: es el edificio.
  */
 export function Escenografia() {
   return (
     <svg
-      className="escenografia"
+      className="capa escenografia"
       viewBox="0 0 1920 1080"
-      preserveAspectRatio="xMidYMid slice"
+      preserveAspectRatio="xMidYMid meet"
       aria-hidden="true"
       focusable="false"
+      style={{ overflow: 'visible' }}
     >
       <defs>
-        <linearGradient id="muro" x1="0" y1="0" x2="0.35" y2="1">
-          <stop offset="0%" stopColor="#241c15" />
-          <stop offset="55%" stopColor="#171209" />
-          <stop offset="100%" stopColor="#0d0a07" />
+        <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#b0c6cd" />
+          <stop offset="46%" stopColor="#d4e0dd" />
+          <stop offset="100%" stopColor="#f1e8d6" />
         </linearGradient>
 
-        <radialGradient id="lampara" cx="0.3" cy="0.02" r="0.85">
-          <stop offset="0%" stopColor="#e6ab63" stopOpacity="0.3" />
-          <stop offset="45%" stopColor="#c06a44" stopOpacity="0.09" />
-          <stop offset="100%" stopColor="#c06a44" stopOpacity="0" />
-        </radialGradient>
+        <linearGradient id="mar" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#7b97a2" />
+          <stop offset="100%" stopColor="#a7bbbc" />
+        </linearGradient>
 
-        <linearGradient id="piedra" x1="0" y1="0" x2="1" y2="0.3">
-          <stop offset="0%" stopColor="#4a3a2b" />
-          <stop offset="48%" stopColor="#332619" />
-          <stop offset="100%" stopColor="#1d1610" />
+        {/* el punto más claro del muro cae donde entra la luz */}
+        <linearGradient id="muro" x1="0.1" y1="0.1" x2="0.95" y2="0.9">
+          <stop offset="0%" stopColor="#faf5ea" />
+          <stop offset="42%" stopColor="#ece2ce" />
+          <stop offset="100%" stopColor="#d4c5a8" />
         </linearGradient>
 
         <linearGradient id="suelo" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#2a2017" />
-          <stop offset="100%" stopColor="#0c0906" />
+          <stop offset="0%" stopColor="#d5c7aa" />
+          <stop offset="46%" stopColor="#e9dfcb" />
+          <stop offset="100%" stopColor="#f2eade" />
         </linearGradient>
 
-        {/*
-          El interior de la hornacina no puede ser un gris oscuro: rodeado de
-          ámbar, el ojo lo lee azulado (contraste simultáneo) y aparece una
-          mancha fría en una sala que debe ser cálida entera. Se mantiene
-          oscuro pero con temperatura.
-        */}
-        <linearGradient id="hueco" x1="0" y1="0" x2="0.4" y2="1">
-          <stop offset="0%" stopColor="#150e08" />
-          <stop offset="100%" stopColor="#22170c" />
+        <linearGradient id="piedra" x1="0" y1="0" x2="1" y2="0.3">
+          <stop offset="0%" stopColor="#f0e7d4" />
+          <stop offset="100%" stopColor="#cfbf9f" />
         </linearGradient>
 
-        <filter id="difuso" x="-25%" y="-25%" width="150%" height="150%">
-          <feGaussianBlur stdDeviation="3.2" />
+        <filter id="difusa" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="2.6" />
         </filter>
 
-        <filter id="muyDifuso" x="-40%" y="-40%" width="180%" height="180%">
-          <feGaussianBlur stdDeviation="26" />
+        <filter id="aire" x="-45%" y="-45%" width="190%" height="190%">
+          <feGaussianBlur stdDeviation="36" />
         </filter>
 
-        <radialGradient id="vineta" cx="0.5" cy="0.42" r="0.78">
-          <stop offset="55%" stopColor="#000" stopOpacity="0" />
-          <stop offset="100%" stopColor="#000" stopOpacity="0.62" />
-        </radialGradient>
+        {/* sin grano, una superficie clara y grande delata que es CSS */}
+        <filter id="grano">
+          <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" />
+          <feColorMatrix type="saturate" values="0" />
+        </filter>
+
+        <clipPath id="vanoA">
+          <path d="M78 470 V214 a111 111 0 0 1 222 0 V470 Z" />
+        </clipPath>
+        <clipPath id="vanoB">
+          <path d="M348 470 V226 a100 100 0 0 1 200 0 V470 Z" />
+        </clipPath>
       </defs>
 
-      {/* muro y suelo */}
-      <rect width="1920" height="1080" fill="url(#muro)" />
-      <rect y="798" width="1920" height="282" fill="url(#suelo)" />
-      <rect y="796" width="1920" height="2" fill="#e6ab63" opacity="0.07" />
+      <rect x="-1000" y="-400" width="3920" height="1880" fill="url(#muro)" />
 
-      {/* la luz cálida que entra por la izquierda — lo único que se mueve */}
-      <g className="respiracion">
-        <ellipse cx="560" cy="60" rx="1080" ry="760" fill="url(#lampara)" />
-        <polygon
-          points="120,0 640,0 1080,900 300,900"
-          fill="#e6ab63"
-          opacity="0.045"
-          filter="url(#muyDifuso)"
-        />
+      {/* pilastra y muro del lado derecho */}
+      <rect x="1548" y="-400" width="1372" height={HORIZONTE + 400} fill="#e0d3b8" />
+      <rect x="1540" y="-400" width="22" height={HORIZONTE + 400} fill="#f2e9d7" />
+      <rect x="1528" y="-400" width="12" height={HORIZONTE + 400} fill="#d5c6a8" />
+
+      {/* hornacina recortada por el borde, como en las referencias */}
+      <g>
+        <path d="M1716 470 V240 a84 84 0 0 1 168 0 V470 Z" fill="#cdbc9c" />
+        <path d="M1716 470 V240 a84 84 0 0 1 168 0 V470" fill="none" stroke="#bcab89" strokeWidth="5" />
+        <g fill="url(#piedra)" filter="url(#difusa)">
+          <rect x="1760" y="424" width="80" height="46" />
+          <rect x="1750" y="412" width="100" height="14" rx="3" />
+          <path d="M1772 292 q-20 44 -20 128 h96 q0 -84 -20 -128 q-28 -14 -56 0 Z" />
+          <rect x="1791" y="252" width="18" height="36" />
+          <ellipse cx="1800" cy="236" rx="23" ry="27" />
+        </g>
+        <g stroke="#b8a582" strokeWidth="2.4" fill="none" opacity="0.85">
+          <path d="M1786 310 q-11 60 -12 112" />
+          <path d="M1814 308 q9 60 11 114" />
+        </g>
       </g>
 
-      {/* columnas del fondo */}
-      {[640, 1280].map((x) => (
-        <g key={x} opacity="0.5" filter="url(#difuso)">
-          <rect x={x - 34} y="150" width="68" height="648" fill="url(#piedra)" />
-          {[-20, -6, 8, 22].map((d) => (
-            <rect key={d} x={x + d} y="150" width="3" height="648" fill="#0d0a07" opacity="0.5" />
-          ))}
-          {/* capitel */}
-          <rect x={x - 48} y="128" width="96" height="26" rx="4" fill="#40311f" />
-          <rect x={x - 42} y="118" width="84" height="12" rx="3" fill="#4a3a2b" />
-          {/* basa */}
-          <rect x={x - 46} y="774" width="92" height="24" rx="4" fill="#3a2c1d" />
+      {/* suelo */}
+      <path d={`M-1000 ${HORIZONTE} H2920 V1480 H-1000 Z`} fill="url(#suelo)" />
+      <rect x="-1000" y={HORIZONTE - 8} width="3920" height="10" fill="#bfad8b" opacity="0.5" />
+
+      {/* juntas en fuga: el suelo es lo que crea la profundidad */}
+      <g stroke="#c6b48f" strokeWidth="1.6" opacity="0.4">
+        <path d={`M-1400 1480 L866 ${HORIZONTE + 2}`} />
+        <path d={`M-760 1480 L912 ${HORIZONTE + 2}`} />
+        <path d={`M-60 1480 L952 ${HORIZONTE + 2}`} />
+        <path d={`M900 1480 L992 ${HORIZONTE + 2}`} />
+        <path d={`M1900 1480 L1034 ${HORIZONTE + 2}`} />
+        <path d={`M2600 1480 L1078 ${HORIZONTE + 2}`} />
+        <path d={`M3300 1480 L1122 ${HORIZONTE + 2}`} />
+      </g>
+      <g stroke="#c6b48f" strokeWidth="1.6" opacity="0.26">
+        <path d="M-1000 566 H2920" />
+        <path d="M-1000 700 H2920" />
+        <path d="M-1000 892 H2920" />
+      </g>
+
+      {/* la arcada: aquí empieza todo */}
+      <g>
+        <g clipPath="url(#vanoA)">
+          <rect x="78" y="100" width="222" height="370" fill="url(#cielo)" />
+          <rect x="78" y="356" width="222" height="114" fill="url(#mar)" />
+          <path d="M78 356 q56 -28 118 -9 q58 19 104 7 v10 H78 Z" fill="#8d998f" opacity="0.8" />
+          <g fill="#47563e" opacity="0.9">
+            <path d="M132 358 q-11 -68 11 -124 q22 56 11 124 Z" />
+            <path d="M218 358 q-14 -86 14 -156 q28 70 14 156 Z" />
+            <path d="M266 358 q-9 -58 9 -106 q18 48 9 106 Z" />
+          </g>
+        </g>
+        <g clipPath="url(#vanoB)">
+          <rect x="348" y="112" width="200" height="358" fill="url(#cielo)" />
+          <rect x="348" y="360" width="200" height="110" fill="url(#mar)" />
+          <path d="M348 360 q52 -20 102 -7 q50 15 94 5 v9 H348 Z" fill="#8d998f" opacity="0.75" />
+          <g fill="#47563e" opacity="0.85">
+            <path d="M392 362 q-12 -74 12 -136 q24 62 12 136 Z" />
+            <path d="M482 362 q-9 -52 9 -96 q18 44 9 96 Z" />
+          </g>
+        </g>
+
+        <g fill="none" stroke="#cbbb99" strokeWidth="8">
+          <path d="M78 470 V214 a111 111 0 0 1 222 0 V470" />
+          <path d="M348 470 V226 a100 100 0 0 1 200 0 V470" />
+        </g>
+        <rect x="300" y="90" width="48" height="380" fill="#eae0c9" />
+        <rect x="294" y="74" width="60" height="20" rx="3" fill="#ded1b4" />
+        <rect x="30" y="90" width="48" height="380" fill="#f0e7d3" />
+        <rect x="24" y="74" width="60" height="20" rx="3" fill="#e4d8be" />
+        <rect x="548" y="94" width="36" height="376" fill="#e1d5bb" />
+        <rect x="542" y="78" width="48" height="20" rx="3" fill="#d6c8aa" />
+      </g>
+
+      {/* la luz entra y se derrama por el suelo hacia la derecha */}
+      <polygon
+        points={`110,${HORIZONTE} 600,${HORIZONTE} 1320,1480 220,1480`}
+        fill="#fffdf7"
+        opacity="0.66"
+        filter="url(#aire)"
+      />
+      <ellipse cx="400" cy="300" rx="470" ry="360" fill="#fff9ec" opacity="0.34" filter="url(#aire)" />
+
+      {/* olivos, plantados contra el muro */}
+      {[
+        { x: 520, e: 1 },
+        { x: 1430, e: 0.92 },
+      ].map(({ x, e }) => (
+        <g key={x} transform={`translate(${x} ${HORIZONTE}) scale(${e})`}>
+          <path d="M-30 0 h60 l-8 -60 h-44 Z" fill="#d2c3a3" />
+          <rect x="-34" y="-72" width="68" height="14" rx="3" fill="#dccfb2" />
+          <rect x="-4" y="-150" width="8" height="80" fill="#8a6b44" />
+          <g opacity="0.9">
+            <ellipse cx="-24" cy="-158" rx="35" ry="24" fill="#68765a" />
+            <ellipse cx="22" cy="-166" rx="37" ry="26" fill="#5c6b4f" />
+            <ellipse cx="-2" cy="-200" rx="43" ry="29" fill="#71805f" />
+            <ellipse cx="-37" cy="-188" rx="23" ry="17" fill="#5c6b4f" />
+            <ellipse cx="33" cy="-194" rx="22" ry="16" fill="#68765a" />
+          </g>
         </g>
       ))}
 
-      {/* hornacina izquierda — busto */}
-      <g opacity="0.78" filter="url(#difuso)">
-        <path d="M46 798 V368 a112 112 0 0 1 224 0 V798 Z" fill="url(#hueco)" />
-        <path
-          d="M46 798 V368 a112 112 0 0 1 224 0 V798"
-          fill="none"
-          stroke="#5a4630"
-          strokeWidth="3"
-          opacity="0.55"
-        />
-        <g fill="url(#piedra)">
-          {/* plinto */}
-          <rect x="112" y="700" width="92" height="98" />
-          <rect x="100" y="690" width="116" height="16" rx="3" />
-          {/* hombros y pecho */}
-          <path d="M108 690 q6 -92 50 -108 q44 16 50 108 Z" />
-          {/* cuello */}
-          <rect x="146" y="548" width="24" height="46" />
-          {/* cabeza y cabello recogido */}
-          <ellipse cx="158" cy="516" rx="38" ry="46" />
-          <path d="M120 508 q10 -52 38 -54 q28 2 38 54 q-16 -26 -38 -26 q-22 0 -38 26 Z" fill="#3d2f20" />
-        </g>
-        {/* la luz le da en la mejilla izquierda */}
-        <ellipse cx="144" cy="512" rx="14" ry="20" fill="#e6ab63" opacity="0.1" />
-      </g>
-
-      {/* hornacina derecha — figura con túnica */}
-      <g opacity="0.5" filter="url(#difuso)">
-        <path d="M1650 798 V330 a112 112 0 0 1 224 0 V798 Z" fill="url(#hueco)" />
-        <path
-          d="M1650 798 V330 a112 112 0 0 1 224 0 V798"
-          fill="none"
-          stroke="#5a4630"
-          strokeWidth="3"
-          opacity="0.55"
-        />
-        <g fill="url(#piedra)">
-          {/* basa */}
-          <rect x="1706" y="742" width="112" height="56" />
-          <rect x="1694" y="730" width="136" height="16" rx="3" />
-          {/*
-            Túnica con hombros anchos y caída recta. La versión anterior salía
-            del cuello directamente a un cono: leía como un bolo, no como una
-            figura vestida. Lo que da la lectura humana es el ancho de hombros
-            frente al de la caída, no el detalle.
-          */}
-          <path d="M1721 494 q-19 68 -27 236 h134 q-8 -168 -27 -236 q-40 -19 -80 0 Z" />
-          {/* pliegues */}
-          <path d="M1732 520 q-14 106 -16 208" stroke="#0d0a07" strokeWidth="3" fill="none" opacity="0.4" />
-          <path d="M1762 516 q3 110 4 212" stroke="#0d0a07" strokeWidth="3" fill="none" opacity="0.4" />
-          <path d="M1792 520 q14 106 16 208" stroke="#0d0a07" strokeWidth="3" fill="none" opacity="0.4" />
-          {/* cuello y cabeza */}
-          <rect x="1752" y="432" width="20" height="46" />
-          <ellipse cx="1762" cy="410" rx="27" ry="33" />
-          <path d="M1735 404 q7 -38 27 -40 q20 2 27 40 q-12 -20 -27 -20 q-15 0 -27 20 Z" fill="#3d2f20" />
-        </g>
-        <ellipse cx="1751" cy="408" rx="11" ry="16" fill="#e6ab63" opacity="0.08" />
-      </g>
-
-      {/* viñeta: cierra la sala y empuja la vista al centro */}
-      <rect width="1920" height="1080" fill="url(#vineta)" />
+      <rect x="-1000" y="-400" width="3920" height="1880" filter="url(#grano)" opacity="0.05" style={{ mixBlendMode: 'multiply' }} />
     </svg>
   );
 }
