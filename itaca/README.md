@@ -5,31 +5,10 @@ Un sistema para mejorar la calidad de las decisiones.
 ÍTACA no es un chat, ni un dashboard, ni una herramienta de productividad. Su
 objetivo es que humanos e inteligencias artificiales piensen mejor juntos.
 
----
-
-## ⚠️ Este directorio está de paso
-
-ÍTACA vive aquí temporalmente, dentro del repositorio `koaplit`, en la rama
-`claude/consejo-itaca-onboarding-snrm6t` y **sin fusionar nunca a `master`**.
-
-No es su sitio. El Consejo aprobó el alcance del Sprint 1 pero no llegó a
-decidir dónde vive el repositorio, y esta rama era el único almacenamiento
-duradero disponible: el entorno de trabajo es un contenedor efímero y todo lo
-que no se empuja se pierde. `C:\ITACA` es una ruta local, inalcanzable desde
-aquí, y en la cuenta no existe ningún repositorio `itaca`.
-
-Para sacarlo a su repositorio propio, conservando el historial:
-
-```bash
-git subtree split --prefix=itaca -b itaca-solo
-# crear naixsaint-rgb/itaca vacío en GitHub, y después:
-git push git@github.com:naixsaint-rgb/itaca.git itaca-solo:main
-```
-
-O, si el Sprint 0 local ya tiene historial que valga la pena, copiar solo el
-contenido de `itaca/` encima de él.
-
-Una vez movido, borrar este directorio y esta rama.
+> El historial de este repositorio empieza en el Sprint 1. Los primeros commits
+> se escribieron dentro de una rama de trabajo de otro repositorio, porque
+> ÍTACA todavía no tenía casa; se extrajeron con `git subtree split`, así que
+> el historial es el real y no una copia aplanada.
 
 ---
 
