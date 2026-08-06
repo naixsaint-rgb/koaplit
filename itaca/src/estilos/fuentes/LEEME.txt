@@ -1,4 +1,0 @@
-Cormorant Garamond — Copyright 2015 the Cormorant Project Authors — SIL Open Font License 1.1 (OFL-Cormorant.txt)
-Inter — Copyright 2020 The Inter Project Authors — SIL Open Font License 1.1 (OFL-Inter.txt)
-
-Subconjunto latino unicamente, servido desde este repositorio. Sin CDN.
