@@ -1,0 +1,466 @@
+/*
+ * LA SALA DEL CONSEJO
+ *
+ * Restricción central: la sala NUNCA hace scroll. Un panel de lectura, sí.
+ * Esa distinción es deliberada — ver nota sobre --u más abajo.
+ */
+
+:root {
+  /*
+   * --u es la unidad de la sala. Vale exactamente 1px a 1920×1080 y escala
+   * de forma uniforme en cualquier otra pantalla, conservando la proporción.
+   *
+   * Por qué no diseñar solo para Full HD: los portátiles reales son 1366×768
+   * y 1440×900, y cualquiera con el zoom al 125% deja de estar en Full HD.
+   * Un diseño clavado a 1920 se recorta en todos ellos. Con --u la sala es
+   * la misma sala, más pequeña. Sigue sin haber scroll.
+   */
+  --u: min(calc(100vw / 1920), calc(100vh / 1080));
+
+  /* Noche cálida. Nada es gris neutro: todo tiene temperatura. */
+  --noche: #100d0a;
+  --muro: #1c1611;
+  --muro-alto: #271f17;
+  --piedra: #35291f;
+
+  --travertino: #f1e7d7;
+  --travertino-tenue: #bcac93;
+  --travertino-sombra: #8a7b66;
+
+  --luz: #e6ab63;
+  --terracota: #c06a44;
+  --oliva: #808a68;
+
+  --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  --sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --transicion: 240ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#raiz {
+  height: 100%;
+  margin: 0;
+  overflow: hidden; /* La sala no hace scroll. Nunca. */
+}
+
+body {
+  background: var(--noche);
+  color: var(--travertino);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ───────────────────────── estructura ───────────────────────── */
+
+.sala {
+  position: relative;
+  display: grid;
+  grid-template-rows: calc(62 * var(--u)) 1fr calc(300 * var(--u));
+  height: 100%;
+  isolation: isolate;
+}
+
+/* ───────────────────────── cabecera ───────────────────────── */
+
+.cabecera {
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 calc(56 * var(--u));
+}
+
+.marca {
+  font-family: var(--serif);
+  font-size: max(15px, calc(21 * var(--u)));
+  letter-spacing: calc(6 * var(--u));
+  color: var(--travertino-tenue);
+}
+
+.marca span {
+  color: var(--luz);
+}
+
+.sello {
+  display: flex;
+  align-items: baseline;
+  gap: calc(20 * var(--u));
+  font-size: max(11px, calc(15 * var(--u)));
+  letter-spacing: calc(2 * var(--u));
+  color: var(--travertino-sombra);
+}
+
+.sello .id {
+  font-family: var(--serif);
+  color: var(--travertino-tenue);
+}
+
+/* ───────────────────────── escena ───────────────────────── */
+
+.escena {
+  position: relative;
+  z-index: 2;
+}
+
+/* ───────────────────────── la mesa ───────────────────────── */
+
+.mesa {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 36%;
+  height: 62%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: calc(18 * var(--u));
+  padding: calc(38 * var(--u)) calc(46 * var(--u));
+  text-align: center;
+
+  /* Mármol oscuro pulido, con la luz cayendo desde arriba a la izquierda. */
+  border-radius: 50% / 46%;
+  background:
+    radial-gradient(120% 150% at 32% 6%, rgba(230, 171, 99, 0.14), transparent 62%),
+    linear-gradient(168deg, #2e241a 0%, #1f1810 55%, #171109 100%);
+  box-shadow:
+    inset 0 calc(2 * var(--u)) 0 rgba(240, 214, 176, 0.13),
+    inset 0 calc(-3 * var(--u)) calc(18 * var(--u)) rgba(0, 0, 0, 0.55),
+    0 calc(40 * var(--u)) calc(90 * var(--u)) rgba(0, 0, 0, 0.5);
+}
+
+.mesa .estado {
+  font-size: max(10px, calc(14 * var(--u)));
+  letter-spacing: calc(3.5 * var(--u));
+  text-transform: uppercase;
+  color: var(--luz);
+}
+
+.mesa .titulo {
+  font-family: var(--serif);
+  font-size: max(20px, calc(41 * var(--u)));
+  line-height: 1.18;
+  font-weight: 400;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.mesa .pregunta {
+  font-family: var(--serif);
+  font-size: max(13px, calc(21 * var(--u)));
+  line-height: 1.45;
+  font-style: italic;
+  color: var(--travertino-tenue);
+  margin: 0;
+  text-wrap: balance;
+}
+
+/* El ciclo de vida, grabado en el canto de la mesa. */
+.ciclo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(11 * var(--u));
+  margin: calc(6 * var(--u)) 0 0;
+  padding: 0;
+  list-style: none; /* el ciclo no es una lista numerada: es un recorrido */
+}
+
+.ciclo li {
+  display: flex;
+  align-items: center;
+  gap: calc(11 * var(--u));
+  font-size: max(9px, calc(12 * var(--u)));
+  letter-spacing: calc(1.6 * var(--u));
+  text-transform: uppercase;
+  color: var(--travertino-sombra);
+  opacity: 0.45;
+}
+
+.ciclo li + li::before {
+  content: '·';
+  color: var(--travertino-sombra);
+  opacity: 0.5;
+}
+
+.ciclo li[data-alcanzado='si'] {
+  opacity: 1;
+  color: var(--travertino-tenue);
+}
+
+.ciclo li[data-actual='si'] {
+  color: var(--luz);
+}
+
+/* ───────────────────────── las sillas ───────────────────────── */
+
+.silla {
+  position: absolute;
+  width: 12.6%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(5 * var(--u));
+  padding: calc(16 * var(--u)) calc(12 * var(--u));
+  border: 0;
+  border-radius: calc(14 * var(--u));
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: background var(--transicion), opacity var(--transicion);
+}
+
+.silla:hover {
+  background: radial-gradient(60% 52% at 50% 42%, rgba(230, 171, 99, 0.09), transparent 78%);
+}
+
+.silla:focus-visible {
+  outline: calc(2 * var(--u)) solid var(--luz);
+  outline-offset: calc(3 * var(--u));
+}
+
+/*
+ * La silla elegida se enciende, no se recuadra: un rectángulo de UI en una
+ * sala de proporciones orgánicas se lee como un widget pegado encima.
+ */
+.silla[data-elegida='si'] {
+  background: radial-gradient(60% 52% at 50% 42%, rgba(230, 171, 99, 0.15), transparent 78%);
+}
+
+.silla[data-presente='no'] {
+  opacity: 0.42;
+}
+
+.glifo {
+  display: grid;
+  place-items: center;
+  width: calc(62 * var(--u));
+  height: calc(62 * var(--u));
+  border-radius: 50%;
+  font-size: max(16px, calc(27 * var(--u)));
+  line-height: 1;
+  background: radial-gradient(circle at 34% 26%, var(--piedra), #16110c);
+  box-shadow:
+    inset 0 calc(1 * var(--u)) 0 rgba(240, 214, 176, 0.16),
+    0 calc(6 * var(--u)) calc(20 * var(--u)) rgba(0, 0, 0, 0.5);
+  transition: box-shadow var(--transicion);
+}
+
+.silla[data-elegida='si'] .glifo {
+  box-shadow:
+    inset 0 calc(1 * var(--u)) 0 rgba(240, 214, 176, 0.2),
+    0 0 calc(30 * var(--u)) rgba(230, 171, 99, 0.42);
+}
+
+.silla[data-presente='no'] .glifo {
+  background: none;
+  border: calc(1.5 * var(--u)) dashed rgba(188, 172, 147, 0.32);
+  box-shadow: none;
+}
+
+.silla .nombre {
+  font-family: var(--serif);
+  font-size: max(13px, calc(20 * var(--u)));
+  color: var(--travertino);
+}
+
+.silla .rol {
+  font-size: max(9px, calc(12.5 * var(--u)));
+  letter-spacing: calc(1.2 * var(--u));
+  color: var(--travertino-sombra);
+}
+
+.silla .postura {
+  font-size: max(9px, calc(13 * var(--u)));
+  font-style: italic;
+  color: var(--luz);
+}
+
+.silla .postura[data-tono='contra'] {
+  color: var(--terracota);
+}
+
+.silla .postura[data-tono='silencio'] {
+  color: var(--travertino-sombra);
+  font-style: normal;
+}
+
+/* ───────────────────────── la voz ───────────────────────── */
+
+.voz {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: calc(304 * var(--u)) 1fr;
+  gap: calc(44 * var(--u));
+  padding: calc(30 * var(--u)) calc(74 * var(--u)) calc(34 * var(--u));
+  border-top: calc(1 * var(--u)) solid rgba(240, 214, 176, 0.1);
+  background: linear-gradient(180deg, rgba(28, 22, 17, 0.72), rgba(16, 13, 10, 0.94));
+  backdrop-filter: blur(calc(6 * var(--u)));
+}
+
+.voz .quien {
+  border-right: calc(1 * var(--u)) solid rgba(240, 214, 176, 0.1);
+  padding-right: calc(28 * var(--u));
+}
+
+.voz .quien h2 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: max(16px, calc(28 * var(--u)));
+  margin: 0 0 calc(6 * var(--u));
+}
+
+.voz .quien .rol {
+  font-size: max(10px, calc(14 * var(--u)));
+  letter-spacing: calc(1.4 * var(--u));
+  color: var(--luz);
+  margin: 0 0 calc(14 * var(--u));
+}
+
+.voz .quien .obligacion {
+  font-size: max(10px, calc(14.5 * var(--u)));
+  line-height: 1.5;
+  color: var(--travertino-sombra);
+  margin: 0;
+  text-wrap: pretty;
+}
+
+/*
+ * El único elemento de la sala que puede desbordar. Los argumentos del
+ * Consejo no tienen longitud acotada y truncarlos sería peor que un scroll
+ * de 300px de alto: la sala sigue quieta, el texto se lee.
+ */
+.voz .argumento {
+  overflow-y: auto;
+  padding-right: calc(20 * var(--u));
+  font-family: var(--serif);
+  font-size: max(13px, calc(22 * var(--u)));
+  line-height: 1.56;
+  color: var(--travertino);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(230, 171, 99, 0.3) transparent;
+}
+
+.voz .argumento p {
+  margin: 0 0 calc(14 * var(--u));
+}
+
+.voz .argumento .etiqueta {
+  display: block;
+  font-family: var(--sans);
+  font-size: max(9px, calc(12.5 * var(--u)));
+  letter-spacing: calc(2.6 * var(--u));
+  text-transform: uppercase;
+  color: var(--travertino-sombra);
+  margin-bottom: calc(10 * var(--u));
+}
+
+.voz .argumento .silencio {
+  color: var(--travertino-sombra);
+  font-style: italic;
+}
+
+.voz .argumento .resolucion {
+  border-left: calc(2 * var(--u)) solid var(--luz);
+  padding-left: calc(20 * var(--u));
+}
+
+.voz .argumento .etiqueta:not(:first-child) {
+  margin-top: calc(20 * var(--u));
+}
+
+.consecuencias {
+  margin: 0;
+  padding-left: calc(22 * var(--u));
+  columns: 2;
+  column-gap: calc(52 * var(--u));
+  font-size: max(11px, calc(17.5 * var(--u)));
+  line-height: 1.5;
+  color: var(--travertino-tenue);
+}
+
+.consecuencias li {
+  break-inside: avoid;
+  margin-bottom: calc(7 * var(--u));
+  padding-left: calc(4 * var(--u));
+  text-wrap: pretty;
+}
+
+.consecuencias li::marker {
+  color: var(--luz);
+  font-size: 0.8em;
+}
+
+/* ───────────────────────── ayuda de teclado ───────────────────────── */
+
+.teclas {
+  position: absolute;
+  right: calc(74 * var(--u));
+  bottom: calc(310 * var(--u));
+  z-index: 3;
+  display: flex;
+  gap: calc(16 * var(--u));
+  font-size: max(9px, calc(12 * var(--u)));
+  letter-spacing: calc(1.2 * var(--u));
+  color: var(--travertino-sombra);
+  opacity: 0.55;
+}
+
+.teclas kbd {
+  font-family: var(--sans);
+  font-size: inherit;
+  border: calc(1 * var(--u)) solid rgba(188, 172, 147, 0.3);
+  border-radius: calc(4 * var(--u));
+  padding: 0 calc(6 * var(--u));
+  margin-right: calc(5 * var(--u));
+}
+
+/* ───────────────────────── escenografía ───────────────────────── */
+
+.escenografia {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/*
+ * Movimiento mínimo: una sola cosa se mueve en toda la sala, muy despacio,
+ * y es la luz. Ninguna otra animación. Nada entra deslizándose.
+ */
+.respiracion {
+  animation: respirar 32s ease-in-out infinite;
+  transform-origin: 30% 0%;
+}
+
+@keyframes respirar {
+  0%,
+  100% {
+    opacity: 0.78;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .respiracion {
+    animation: none;
+    opacity: 0.9;
+  }
+  * {
+    transition-duration: 1ms !important;
+  }
+}

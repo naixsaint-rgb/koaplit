@@ -1,0 +1,22 @@
+{
+  "name": "itaca",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "ÍTACA — sistema para mejorar la calidad de las decisiones",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "verificar": "node scripts/verificar.mjs",
+    "actas": "node scripts/generar-actas.mjs"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.0.4",
+    "vite": "^7.1.12"
+  }
+}
