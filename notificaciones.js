@@ -39,6 +39,12 @@
   function eventoItemCompra(it) {
     return { tipo: 'compra', texto: `${it.categoria} ${esc(nombre(it.creadoPor))} añadió «${esc(it.texto)}» a la lista` };
   }
+  function eventoMesLiquidado(clave, v) {
+    const partes = clave.split('·'); // ["liq", grupoId, "YYYY-MM"]
+    const gid = partes[1], ym = partes[2];
+    const gr = grupo(gid);
+    return { tipo: 'liquidado', texto: `🤝 ${esc(nombre(v.por))} liquidó ${mesBonito(ym)} · en paz${gr && gr.id !== 'pareja' ? ' · ' + esc(nombreGrupo(gr)) : ''}` };
+  }
 
   /* pura: no toca `estado` ni el DOM, solo compara tres snapshots */
   function detectarEventos(antes, fusionado, remoto) {
@@ -92,6 +98,12 @@
     const clavesRemoto = new Set(Object.keys(remoto.portadasMes || {}));
     for (const [clave, v] of Object.entries(fusionado.portadasMes || {})) {
       if (!clavesAntes.has(clave) && clavesRemoto.has(clave)) eventos.push(eventoPortada(clave, v));
+    }
+
+    const liqAntes = new Set(Object.keys(antes.mesesLiquidados || {}));
+    const liqRemoto = new Set(Object.keys(remoto.mesesLiquidados || {}));
+    for (const [clave, v] of Object.entries(fusionado.mesesLiquidados || {})) {
+      if (!liqAntes.has(clave) && liqRemoto.has(clave)) eventos.push(eventoMesLiquidado(clave, v));
     }
 
     const idsAntesLC = new Set((antes.listaCompra || []).map(it => it.id));

@@ -504,8 +504,15 @@ function vGastos() {
     const total = gs.reduce((s, x) => s + x.importe, 0);
     const porPersona = {};
     for (const x of gs) porPersona[x.pagadoPor] = (porPersona[x.pagadoPor] || 0) + x.importe;
-    h += `<div class="mes-grupo">${htmlPortadaMes(g.id, ym)}<div class="mes-cabecera"><span>${mesBonito(ym)}</span></div>`;
-    h += gs.map(x => `
+    const liq = mesLiquidado(g.id, ym);
+    const transM = simplificarDeudas(netosMes(g.id, ym));
+    h += `<section class="mes-grupo${liq ? ' mes-en-paz' : ''}">`;
+    h += htmlPortadaMes(g.id, ym);
+    h += `<div class="mes-cabecera">
+      <span class="mes-nombre">${mesBonito(ym)}</span>
+      <span class="mes-badge-total">${fmtMon(total, g.moneda)}${liq ? ` <span class="mes-liq-chip">✓ ${t('liquidado')}</span>` : ''}</span>
+    </div>`;
+    h += `<div class="mes-items">` + gs.map(x => `
       <div class="item-linea" role="button" tabindex="0" data-action="abrir-gasto" data-id="${x.id}">
         <span class="item-icono">${x.categoria}</span>
         <span class="item-cuerpo">
@@ -515,8 +522,8 @@ function vGastos() {
         <span class="item-importe">${fmtMon(x.importe, g.moneda)}
           ${x.moneda !== g.moneda ? `<small>${fmtMon(x.importeOriginal, x.moneda)}</small>` : ''}
         </span>
-      </div>`).join('');
-    // cierre del mes: total + quién pagó cuánto
+      </div>`).join('') + `</div>`;
+    // cierre del mes: total + quién pagó + deuda del mes + liquidación
     h += `<div class="mes-total">
       <div class="mes-total-fila">
         <span>Σ ${t('total')} · ${mesBonito(ym)}</span>
@@ -524,8 +531,21 @@ function vGastos() {
       </div>
       <div class="mes-total-personas">
         ${Object.entries(porPersona).map(([pid, v]) => `<span>${emojiDe(pid)} ${esc(nombre(pid))} <b>${fmtMon(v, g.moneda)}</b></span>`).join('')}
+      </div>`;
+    if (liq) {
+      h += `<div class="mes-liq">
+        <span class="mes-liq-badge">🕊️ ${t('enPazMes')} · ${fechaBonita(liq.fecha)}</span>
+        <button type="button" class="mes-reabrir" data-action="reabrir-mes" data-grupo="${g.id}" data-ym="${ym}">↩️ ${t('reabrirMes')}</button>
+      </div>`;
+    } else if (transM.length) {
+      h += `<div class="mes-deuda">
+        ${transM.map(tr => `<span>${emojiDe(tr.de)} <b>${esc(nombre(tr.de))}</b> ${t('debe')} <b class="tinta-coral">${fmtMon(tr.importe, g.moneda)}</b> → <b>${esc(nombre(tr.para))}</b> ${emojiDe(tr.para)}</span>`).join('')}
       </div>
-    </div></div>`;
+      <button type="button" class="btn-suave btn-bloque mes-liquidar" data-action="liquidar-mes" data-grupo="${g.id}" data-ym="${ym}">🤝 ${t('liquidarMes')}</button>`;
+    } else {
+      h += `<div class="mes-deuda mes-deuda-cero">🕊️ ${t('enPazMes')}</div>`;
+    }
+    h += `</div></section>`;
   }
   return h;
 }
@@ -963,6 +983,37 @@ function confirmarSaldar() {
   toast(imp === tmp.max ? t('pazTotal') : t('pagoRegistrado'));
 }
 
+/* ---------- hoja: liquidar un mes (marcar en paz sin borrar nada) ---------- */
+function sheetLiquidarMes(grupoId, ym) {
+  const gr = grupo(grupoId) || grupoPareja();
+  const transM = simplificarDeudas(netosMes(gr.id, ym));
+  const total = gastosDe(gr.id).filter(x => x.fecha.slice(0, 7) === ym).reduce((s, x) => s + x.importe, 0);
+  tmp = { liqGid: gr.id, liqYm: ym };
+  abrirSheet(`
+    <h3 class="sheet-titulo">🤝 ${t('liquidarMes')}
+      <button class="btn-icono" data-action="cerrar-sheet" aria-label="✕">✕</button>
+    </h3>
+    <div class="subtitulo" style="margin-top:0">${mesBonito(ym)} · ${esc(nombreGrupo(gr))}</div>
+    <p style="color:var(--bruma);font-size:14px;margin:6px 0 16px">${t('liquidarMesAyuda')}</p>
+    ${transM.length ? transM.map(tr => `
+      <div class="item-linea" style="margin-bottom:8px">
+        <span class="item-icono">${emojiDe(tr.de)}</span>
+        <span class="item-cuerpo">
+          <span class="item-titulo">${esc(nombre(tr.de))} → ${esc(nombre(tr.para))}</span>
+          <span class="item-sub">${t('debe')} ${fmtMon(tr.importe, gr.moneda)}</span>
+        </span>
+        <span class="item-importe tinta-coral">${fmtMon(tr.importe, gr.moneda)}</span>
+      </div>`).join('') : `<div class="carta" style="display:flex;align-items:center;gap:10px;padding:13px 16px">
+        <span style="font-size:22px">🕊️</span><span style="color:var(--bruma);font-size:14px">${t('enPazMes')}</span>
+      </div>`}
+    <div class="mes-total" style="margin-top:12px">
+      <div class="mes-total-fila"><span>Σ ${t('total')} · ${mesBonito(ym)}</span><b>${fmtMon(total, gr.moneda)}</b></div>
+    </div>
+    <p class="nota-form" style="margin-top:14px">${t('liquidarMesNota')}</p>
+    <button class="btn-principal btn-bloque" data-action="confirmar-liquidar-mes">✓ ${t('confirmarLiquidar')}</button>
+  `);
+}
+
 /* ---------- hoja: totales ---------- */
 function sheetTotales() {
   const gr = grupo(grupoActivo) || grupoPareja();
@@ -1094,6 +1145,20 @@ function sheetResumenAno(grupoId) {
   const racha = rachaDias();
   const ahorroTotalAno = metasLogradasAno.reduce((s, o) => s + aportadoMeta(o), 0) + retosCompletadosAno.reduce((s, r) => s + ahorroReto(r), 0);
 
+  // agenda: cada mes del año con su foto, su total y si está liquidado
+  const agendaHtml = Object.keys(porMesAno).sort((a, b) => b.localeCompare(a)).map(ym => {
+    const foto = portadaMes(gr.id, ym);
+    const liqm = mesLiquidado(gr.id, ym);
+    return `<div class="agenda-mes" role="button" tabindex="0" data-action="ir-mes" data-grupo="${gr.id}" data-ym="${ym}">
+      <div class="agenda-mes-foto"${foto ? ` style="background-image:url('${foto.dataUrl}')"` : ''}>${foto ? '' : '📅'}</div>
+      <div class="agenda-mes-cuerpo">
+        <div class="agenda-mes-nombre">${mesBonito(ym)}</div>
+        <div class="agenda-mes-estado">${liqm ? `<span class="mes-liq-chip">✓ ${t('liquidado')}</span>` : `<span style="color:var(--bruma)">${t('verMes')} →</span>`}</div>
+      </div>
+      <div class="agenda-mes-total">${fmtMon(porMesAno[ym], gr.moneda)}</div>
+    </div>`;
+  }).join('');
+
   abrirSheet(`
     <h3 class="sheet-titulo">🎁 Vuestro ${tot.anoActual}
       <button class="btn-icono" data-action="cerrar-sheet" aria-label="✕">✕</button>
@@ -1127,6 +1192,8 @@ function sheetResumenAno(grupoId) {
       <div style="flex:1"><div style="font-size:12px;color:var(--bruma)">Gastos anotados este año</div>
         <div style="font-weight:700">${gastosAno.length}</div></div>
     </div>
+    ${agendaHtml ? `<h4 class="agenda-titulo">${t('agendaAno')}</h4>
+    <div class="agenda-lista">${agendaHtml}</div>` : ''}
     <p style="text-align:center;color:var(--bruma);font-size:12.5px;margin-top:16px">Se mantiene aunque saldéis las cuentas — nada se borra nunca. 🐨</p>
   `);
 }
@@ -1707,6 +1774,10 @@ async function procesarPortadaMes(archivo) {
    ============================================================ */
 const acciones = {
   'ir': b => { vistaActual = b.dataset.vista; busqueda = ''; cerrarSheet(); render(); window.scrollTo({ top: 0 }); },
+  'ir-mes': b => {
+    if (b.dataset.grupo && grupo(b.dataset.grupo)) grupoActivo = b.dataset.grupo;
+    vistaActual = 'gastos'; busqueda = ''; cerrarSheet(); render(); window.scrollTo({ top: 0 });
+  },
   'fab': () => {
     if (vistaActual === 'metas') sheetMeta(null);
     else if (vistaActual === 'retos') sheetReto(null);
@@ -1813,6 +1884,20 @@ const acciones = {
   // saldar
   'abrir-saldar': b => sheetSaldar(b.dataset.grupo || grupoActivo),
   'confirmar-saldar': () => confirmarSaldar(),
+
+  // liquidar un mes (marcar en paz; nunca borra gastos)
+  'liquidar-mes': b => sheetLiquidarMes(b.dataset.grupo || grupoActivo, b.dataset.ym),
+  'confirmar-liquidar-mes': () => {
+    if (!tmp.liqGid || !tmp.liqYm) return;
+    liquidarMes(tmp.liqGid, tmp.liqYm, disp.yo || 'a');
+    guardar(); vibrar(16); cerrarSheet(); render(); confeti();
+    toast(t('mesLiquidadoOk'));
+  },
+  'reabrir-mes': b => {
+    reabrirMes(b.dataset.grupo || grupoActivo, b.dataset.ym);
+    guardar(); vibrar(10); render();
+    toast(t('mesReabierto'));
+  },
   'elegir-metodo': b => { tmp.metodo = b.dataset.valor; marcarActivo(b); },
   'registrar-transferencia': b => {
     const tr = tmp.transferencias && tmp.transferencias[+b.dataset.idx];

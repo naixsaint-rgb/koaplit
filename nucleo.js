@@ -159,6 +159,7 @@ function estadoInicial() {
     objetivos: [],  // {id, nombre, emoji, meta, fechaLimite, aportes[], completadoEl, mod}
     retos: [],      // {id, nombre, emoji, importePorCheck, checksMeta, modo, checks[], objetivoId, estado, finalizadoEl, mod}
     portadasMes: {},// {"grupoId·YYYY-MM": {dataUrl, subidoPor, mod}} — foto de cabecera de cada mes
+    mesesLiquidados: {},// {"liq·grupoId·YYYY-MM": {por, fecha, mod}} — meses saldados; NO borran gastos, solo marcan "en paz"
     listaCompra: [],// {id, grupoId, texto, categoria, hecho, creadoPor, hechoPor, mod}
     borrados: {}    // {id: iso} — lápidas para sincronización
   };
@@ -209,6 +210,7 @@ const sInt = (v, tope) => {
 };
 const sMoneda = m => (typeof m === 'string' && /^[A-Z]{3}$/.test(m) ? m : 'EUR');
 const vClavePortada = s => typeof s === 'string' && s.length <= 50 && /^[a-z0-9_-]{1,40}·\d{4}-\d{2}$/i.test(s);
+const vClaveLiq = s => typeof s === 'string' && s.length <= 60 && /^liq·[a-z0-9_-]{1,40}·\d{4}-\d{2}$/i.test(s);
 const vDataUrlImagen = s => typeof s === 'string' && s.length <= MAX_PORTADA_CHARS && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(s);
 
 function sanearEstado(bruto) {
@@ -374,6 +376,21 @@ function sanearEstado(bruto) {
         mod: vISO(v.mod) ? v.mod : ahora()
       };
       nPortadas++;
+    }
+  }
+
+  // meses liquidados (marcadores de "en paz"; nunca borran gastos)
+  if (b.mesesLiquidados && typeof b.mesesLiquidados === 'object') {
+    let nLiq = 0;
+    for (const [clave, v] of Object.entries(b.mesesLiquidados)) {
+      if (nLiq >= 1200 || !vClaveLiq(clave) || !v || typeof v !== 'object') continue;
+      if (!grupoDe(clave.split('·')[1])) continue;
+      e.mesesLiquidados[clave] = {
+        por: hayPersona(v.por) ? v.por : 'a',
+        fecha: vFecha(v.fecha) ? v.fecha : hoyISO(),
+        mod: vISO(v.mod) ? v.mod : ahora()
+      };
+      nLiq++;
     }
   }
 
@@ -571,6 +588,7 @@ function netosGrupo(gid) {
   if (!g) return netos;
   for (const m of g.miembros) netos[m] = 0;
   for (const gasto of gastosDe(gid)) {
+    if (mesLiquidado(gid, gasto.fecha.slice(0, 7))) continue; // los meses en paz no cuentan como deuda viva
     if (netos[gasto.pagadoPor] == null) netos[gasto.pagadoPor] = 0;
     netos[gasto.pagadoPor] += gasto.importe;
     for (const [pid, parte] of Object.entries(gasto.partes)) {
@@ -653,6 +671,37 @@ function quitarPortadaMes(grupoId, ym) {
   const clave = claveMes(grupoId, ym);
   delete estado.portadasMes[clave];
   marcarBorrado(clave);
+}
+
+/* ---------- liquidación por mes (marcar "en paz" sin borrar nada) ---------- */
+const claveLiq = (grupoId, ym) => 'liq·' + grupoId + '·' + ym;
+function mesLiquidado(grupoId, ym) { return estado.mesesLiquidados[claveLiq(grupoId, ym)] || null; }
+function liquidarMes(grupoId, ym, miembro) {
+  const por = estado.personas.some(p => p.id === miembro) ? miembro : 'a';
+  estado.mesesLiquidados[claveLiq(grupoId, ym)] = { por, fecha: hoyISO(), mod: ahora() };
+}
+function reabrirMes(grupoId, ym) {
+  const clave = claveLiq(grupoId, ym);
+  delete estado.mesesLiquidados[clave];
+  marcarBorrado(clave);
+}
+
+/* balances de UN solo mes (solo sus gastos; ignora pagos globales y liquidaciones) */
+function netosMes(gid, ym) {
+  const netos = {};
+  const g = grupo(gid);
+  if (!g) return netos;
+  for (const m of g.miembros) netos[m] = 0;
+  for (const gasto of gastosDe(gid)) {
+    if (gasto.fecha.slice(0, 7) !== ym) continue;
+    if (netos[gasto.pagadoPor] == null) netos[gasto.pagadoPor] = 0;
+    netos[gasto.pagadoPor] += gasto.importe;
+    for (const [pid, parte] of Object.entries(gasto.partes)) {
+      if (netos[pid] == null) netos[pid] = 0;
+      netos[pid] -= parte;
+    }
+  }
+  return netos;
 }
 
 /* redimensiona y comprime una imagen a JPEG pequeño, para caber en localStorage y en el canal de sync */

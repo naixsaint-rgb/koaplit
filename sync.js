@@ -142,6 +142,7 @@
     res.recurrentes = fusionaColeccion('recurrentes');
     res.listaCompra = fusionaColeccion('listaCompra');
     res.portadasMes = fusionaDiccionario('portadasMes');
+    res.mesesLiquidados = fusionaDiccionario('mesesLiquidados');
 
     // objetivos: LWW de campos + unión de aportes por id
     res.objetivos = fusionaColeccion('objetivos', (x, y) => {
